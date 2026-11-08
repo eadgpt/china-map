@@ -13,13 +13,21 @@
   --NB:#F6D673;--NE:#95C8F0;--E:#93DCA9;--C:#F6B691;--S:#F2A0BC;--SW:#BBA9F0;--NW:#DDC3A0;
   --dNB:#8A6A12;--dNE:#2F6E9E;--dE:#23824F;--dC:#A9542A;--dS:#A8325A;--dSW:#5E43A8;--dNW:#7D5B33;
   --spring:cubic-bezier(.32,1.28,.5,1);--ease:cubic-bezier(.2,.8,.2,1)}
-@media (prefers-color-scheme:dark){:root{
+:root[data-theme=light]{color-scheme:light}
+:root[data-theme=dark]{
   --bg:#000;--card:#1C1C1E;--card2:#2C2C2E;--fill:rgba(118,118,128,.24);--ink:#F2F2F7;--mut:#98989F;--sep:rgba(84,84,88,.55);
   --acc:#7D7AFF;--accSoft:rgba(125,122,255,.2);--ok:#30D158;--bad:#FF453A;--gold:#FFC22E;
   --sea:#0C1722;--land:#38383C;--landStroke:#17171A;--halo:#000;--lblInk:#F5F5F7;--soft:#34306A;--okSoft:#1E5A32;--badSoft:#5C1F1B;
   --dotFill:#D1D1D6;--dotStroke:#000;--mat:rgba(28,28,30,.78);--matLine:rgba(255,255,255,.08);--shadow:0 8px 30px rgba(0,0,0,.5);
   --NB:#6E5B1F;--NE:#224B6E;--E:#1E5C38;--C:#6E3F24;--S:#6B2B45;--SW:#46387E;--NW:#5C4831;
-  --dNB:#F6D673;--dNE:#95C8F0;--dE:#93DCA9;--dC:#F6B691;--dS:#F2A0BC;--dSW:#BBA9F0;--dNW:#DDC3A0}}
+  --dNB:#F6D673;--dNE:#95C8F0;--dE:#93DCA9;--dC:#F6B691;--dS:#F2A0BC;--dSW:#BBA9F0;--dNW:#DDC3A0;color-scheme:dark}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){
+  --bg:#000;--card:#1C1C1E;--card2:#2C2C2E;--fill:rgba(118,118,128,.24);--ink:#F2F2F7;--mut:#98989F;--sep:rgba(84,84,88,.55);
+  --acc:#7D7AFF;--accSoft:rgba(125,122,255,.2);--ok:#30D158;--bad:#FF453A;--gold:#FFC22E;
+  --sea:#0C1722;--land:#38383C;--landStroke:#17171A;--halo:#000;--lblInk:#F5F5F7;--soft:#34306A;--okSoft:#1E5A32;--badSoft:#5C1F1B;
+  --dotFill:#D1D1D6;--dotStroke:#000;--mat:rgba(28,28,30,.78);--matLine:rgba(255,255,255,.08);--shadow:0 8px 30px rgba(0,0,0,.5);
+  --NB:#6E5B1F;--NE:#224B6E;--E:#1E5C38;--C:#6E3F24;--S:#6B2B45;--SW:#46387E;--NW:#5C4831;
+  --dNB:#F6D673;--dNE:#95C8F0;--dE:#93DCA9;--dC:#F6B691;--dS:#F2A0BC;--dSW:#BBA9F0;--dNW:#DDC3A0;color-scheme:dark}}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font:15px/1.38 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Hiragino Sans GB","Helvetica Neue","Noto Sans SC",sans-serif;-webkit-font-smoothing:antialiased}
 button{font:inherit;color:inherit;cursor:pointer}
@@ -102,6 +110,10 @@ svg.allon.zoomed .clab,.clab.on{display:inline}
 #layersBtn.on{color:var(--acc)}
 .lpop{position:absolute;right:62px;bottom:28px;z-index:5;width:min(290px,calc(100% - 24px));border-radius:18px;padding:6px 0;transform-origin:bottom right;animation:popin .35s var(--spring)}
 .lpop[hidden]{display:none}
+#setpop{position:fixed;top:calc(env(safe-area-inset-top) + 60px);right:12px;bottom:auto;transform-origin:top right;z-index:20}
+.gear{width:38px;height:38px;border-radius:50%;border:0;background:var(--card);display:grid;place-items:center;color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.06);transition:transform .25s var(--spring)}
+.gear:active{transform:scale(.9)}.gear.on{color:var(--acc)}
+#setpop .seg{margin:4px 12px 8px;display:flex;flex-wrap:nowrap}#setpop .seg button{flex:1;white-space:nowrap}
 @keyframes popin{from{opacity:0;transform:scale(.85)}}
 .lpop h4{margin:8px 16px 6px;font-size:12px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:.04em}
 .prow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 16px;font-size:15px;cursor:pointer}
@@ -124,7 +136,8 @@ svg.allon.zoomed .clab,.clab.on{display:inline}
 .seg{position:relative;display:inline-flex;flex-wrap:wrap;background:var(--fill);border-radius:10px;padding:2px;gap:0}
 .seg button{position:relative;z-index:1;border:0;background:none;border-radius:8px;padding:6px 12px;font-size:13px;font-weight:600;color:var(--ink);transition:color .2s}
 .seg .thumb{position:absolute;z-index:0;left:0;top:0;border-radius:8px;background:var(--card);box-shadow:0 3px 8px rgba(0,0,0,.12),0 3px 1px rgba(0,0,0,.04);transition:transform .4s var(--spring),width .4s var(--spring),height .3s,opacity .2s}
-@media (prefers-color-scheme:dark){.seg .thumb{background:#636366}}
+:root[data-theme=dark] .seg .thumb{background:#636366}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .seg .thumb{background:#636366}}
 .tog{display:inline-flex;align-items:center;gap:6px;border:0;background:var(--fill);color:var(--ink);border-radius:999px;padding:7px 12px;font-size:13.5px;font-weight:600;transition:background .2s,color .2s,transform .2s var(--spring)}
 .tog svg.i{width:17px;height:17px}
 .tog.on{background:var(--accSoft);color:var(--acc)}
@@ -198,7 +211,7 @@ summary::-webkit-details-marker{display:none}
   .grab{display:none}.scroll{padding-top:16px}
   .tabbar{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);width:460px;border-radius:24px;border:0;box-shadow:var(--shadow);padding:6px}
   .mapctl,.legend{bottom:14px}}
-@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001ms!important;animation-delay:0s!important;transition-duration:.001ms!important}}
+html.calm *,html.calm *::before,html.calm *::after{animation-duration:.001ms!important;animation-delay:0s!important;transition-duration:.001ms!important}
 </style>
 </head>
 <body>
@@ -208,9 +221,11 @@ summary::-webkit-details-marker{display:none}
     <div><h1>中国地图</h1><div class="sub"><span id="mlab">Provinces</span> · <span id="mpt">0/33 gold</span></div></div>
     <div class="hstats">
       <span class="pill" id="st">🔥 0</span><span class="pill" id="sc">★ 0</span>
+      <button class="gear" id="gear" aria-label="Settings"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2.2"/><circle cx="9" cy="17" r="2.2"/></svg></button>
       <div class="ring" title="Mastery"><svg viewBox="0 0 38 38"><circle class="rt" cx="19" cy="19" r="16"/><circle class="rf" id="rf" cx="19" cy="19" r="16" stroke-dasharray="100.5" stroke-dashoffset="100.5"/></svg><b id="rp">0</b></div>
     </div>
   </header>
+  <div class="lpop mat" id="setpop" hidden></div>
   <main class="stage">
     <div class="mapbox" id="mapbox">
       <svg id="map" class="intro" viewBox="-6 -6 522 424" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
@@ -390,7 +405,7 @@ const CT=CT_RAW.map(([s,f,p,lon,lat,py,en])=>{const xy=proj(lon,lat),c={s,f,p,py
   c.lab=el('text',{x:xy[0]+2.4,y:xy[1]+1.3,class:'clab'+(c.cap?' cap':'')},gAll);c.lab.textContent=s;return c});
 const CTQ=CT.filter(c=>!c.muni);
 // ---------- camera ----------
-const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+let RM=false;
 const BASE={x:-6,y:-6,w:522,h:424};const VB0={...BASE};let vb={...VB0},RW=390,RH=320,camA=0;
 function fitVB0(){const r=svg.getBoundingClientRect();RW=r.width||390;RH=r.height||320;const ar=RW/RH;
   if(ar>BASE.w/BASE.h){VB0.h=BASE.h;VB0.w=BASE.h*ar;VB0.x=BASE.x-(VB0.w-BASE.w)/2;VB0.y=BASE.y}
@@ -483,7 +498,7 @@ bump(null);streak=0;$('#st').textContent='🔥 0';
 let tt;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),1600)}
 const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
 const pick=a=>a[Math.random()*a.length|0];
-const RC=r=>getComputedStyle(document.documentElement).getPropertyValue('--'+r).trim();
+const RC=r=>`var(--${r})`;
 function flash(nm,ok){const p=PEL[nm];if(!p)return;p.classList.add(ok?'flash-ok':'flash-bad');setTimeout(()=>p.classList.remove('flash-ok','flash-bad'),650)}
 
 // ---------- mastery ----------
@@ -501,7 +516,10 @@ function clearn(c,ok){MSC[c.f]=Math.max(0,Math.min(MAXP,cpts(c)+(ok?1:-2)));stor
 function mbar(){let tot,g,n;if(TRK==='c'){n=CTQ.length;tot=CTQ.reduce((a,c)=>a+cpts(c),0)/(n*MAXP);g=CTQ.filter(c=>cstars(c)===3).length;$('#mlab').textContent='Cities'}
   else{n=ALLP.length;tot=ALLP.reduce((a,x)=>a+pts(x),0)/(n*MAXP);g=ALLP.filter(x=>stars(x)===3).length;$('#mlab').textContent='Provinces'}
   $('#rf').style.strokeDashoffset=100.5*(1-tot);$('#rp').textContent=Math.round(tot*100);$('#mpt').textContent=`${g}/${n} gold`}
-const SET=Object.assign({snd:true,voice:true},store.get('cmt_set',{}));
+const SET=Object.assign({snd:true,voice:true,motion:true,theme:'auto'},store.get('cmt_set',{}));
+function applyTheme(){const r=document.documentElement;if(SET.theme==='auto')r.removeAttribute('data-theme');else r.dataset.theme=SET.theme}
+function applyMotion(){RM=!SET.motion;document.documentElement.classList.toggle('calm',RM)}
+applyTheme();applyMotion();
 let AC=null;function beep(ok){if(!SET.snd)return;try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain(),t=AC.currentTime;
   o.type=ok?'sine':'square';o.frequency.setValueAtTime(ok?660:180,t);if(ok)o.frequency.setValueAtTime(990,t+.09);g.gain.setValueAtTime(.12,t);g.gain.exponentialRampToValueAtTime(.001,t+(ok?.25:.3));
   o.connect(g).connect(AC.destination);o.start(t);o.stop(t+.3);if(!ok&&navigator.vibrate)navigator.vibrate(120)}catch(e){}}
@@ -823,9 +841,22 @@ function segThumbs(){document.querySelectorAll('.seg').forEach(sg=>{let th=sg.qu
   const on=sg.querySelector(':scope>button.on');if(!on||!on.offsetWidth){th.style.opacity=0;return}
   th.style.opacity=1;th.style.width=on.offsetWidth+'px';th.style.height=on.offsetHeight+'px';th.style.transform=`translate(${on.offsetLeft}px,${on.offsetTop}px)`;
   if(fresh)requestAnimationFrame(()=>requestAnimationFrame(()=>th.style.transition=''))})}
+// ---------- settings ----------
+(()=>{const sp=$('#setpop'),gb=$('#gear');const save=()=>store.set('cmt_set',SET);
+  const syncTrain=()=>{const tv=$('#tv'),ts=$('#ts');tv&&tv.classList.toggle('on',SET.voice);ts&&ts.classList.toggle('on',SET.snd)};
+  function build(){sp.innerHTML=`<h4>Appearance</h4><div class="seg" id="thm">${[['auto','Auto'],['light','Light'],['dark','Dark']].map(([k,v])=>`<button data-k="${k}" class="${SET.theme===k?'on':''}">${v}</button>`).join('')}</div>
+    <h4>Settings</h4>
+    <div class="prow ${SET.motion?'on':''}" data-s="motion"><span>Animations</span><i class="sw"></i></div>
+    <div class="prow ${SET.snd?'on':''}" data-s="snd"><span>Sound effects</span><i class="sw"></i></div>
+    <div class="prow ${SET.voice?'on':''}" data-s="voice"><span>Mandarin voice</span><i class="sw"></i></div>`;
+    sp.querySelectorAll('#thm button').forEach(b=>b.onclick=()=>{SET.theme=b.dataset.k;save();applyTheme();sp.querySelectorAll('#thm button').forEach(x=>x.classList.toggle('on',x===b))});
+    sp.querySelectorAll('[data-s]').forEach(r=>r.onclick=()=>{const k=r.dataset.s;SET[k]=!SET[k];r.classList.toggle('on',SET[k]);save();if(k==='motion')applyMotion();syncTrain()})}
+  const close=()=>{sp.hidden=true;gb.classList.remove('on')};
+  gb.onclick=e=>{e.stopPropagation();if(sp.hidden){build();sp.hidden=false;gb.classList.add('on')}else close()};
+  document.addEventListener('pointerdown',e=>{if(!sp.hidden&&!sp.contains(e.target)&&!gb.contains(e.target))close()},true)})();
 let segQ=0;new MutationObserver(()=>{if(!segQ)segQ=requestAnimationFrame(()=>{segQ=0;segThumbs()})}).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','hidden']});
 addEventListener('resize',()=>segThumbs());
-try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>MODES[curMode]())}catch(e){}
+
 mbar();explore();
 </script>
 </body>
