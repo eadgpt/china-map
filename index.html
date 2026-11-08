@@ -203,7 +203,12 @@ summary::-webkit-details-marker{display:none}
 .grp{margin:14px 0 4px;font-size:12px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.05em}
 .al{display:grid;grid-template-columns:44px 1fr;gap:2px 12px;padding:10px 0;border-top:.5px solid var(--sep);font-size:14.5px}
 .al .code{font-weight:700;font-size:12.5px;background:var(--fill);border-radius:8px;text-align:center;padding:4px 0;height:fit-content}
-.foot{font-size:12px;color:var(--mut);margin-top:16px;line-height:1.45}
+.foot{font-size:12px;color:var(--mut);margin-top:12px;line-height:1.45}
+.ftog{display:flex;align-items:center;gap:6px;border:0;background:none;padding:6px 0;color:var(--mut);font-size:12.5px;font-weight:600}
+.ftog svg.i{width:15px;height:15px}.ftog .chev{transition:transform .3s var(--spring)}
+.foot.open .chev{transform:rotate(90deg)}
+.fbody{display:grid;grid-template-rows:0fr;transition:grid-template-rows .35s var(--ease)}
+.fbody>*{overflow:hidden}.foot.open .fbody{grid-template-rows:1fr}
 .search{display:flex;align-items:center;gap:8px;background:var(--fill);border-radius:12px;padding:0 10px;height:40px;color:var(--mut)}
 .search input{flex:1;border:0;background:none;outline:none;font:inherit;font-size:16px;color:var(--ink);min-width:0}
 .search input::placeholder{color:var(--mut)}
@@ -228,6 +233,18 @@ summary::-webkit-details-marker{display:none}
   .tabbar{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);width:460px;border-radius:24px;border:0;box-shadow:var(--shadow);padding:6px}
   .mapctl,.legend{bottom:14px}}
 
+/* phone upright: tighter chrome so the map and content get the room */
+@media (max-width:899px) and (orientation:portrait){
+  .bar{padding:4px 14px 6px}
+  .bar h1{font-size:19px}.bar .sub{font-size:11.5px;margin-top:0}
+  .hstats{gap:5px}.pill{padding:3px 8px;font-size:12px}
+  .gear,.ring,.ring svg{width:30px;height:30px}.gear svg.i{width:17px;height:17px}.ring b{font-size:9px}.ring circle{stroke-width:4.6}
+  .mapctl{right:8px;bottom:28px}.ctl{border-radius:11px}.ctl button{width:34px;height:34px}.ctl svg.i{width:17px;height:17px}
+  .hint{padding:8px 11px;gap:9px;font-size:12.5px;line-height:1.35;margin-top:8px;border-radius:12px}.hint svg.i{width:16px;height:16px}
+  .tabbar{padding:3px 4px calc(2px + env(safe-area-inset-bottom))}
+  .tabbar button{font-size:9.5px;gap:1px;padding:3px 0}.tabbar button svg.i{width:21px;height:21px}
+  .search{height:36px}.search input{font-size:16px}
+}
 /* phone on its side: map left, panel right, slim header and tab bar */
 @media (orientation:landscape) and (max-height:560px){
   .bar{padding:4px 14px 4px}
@@ -277,7 +294,7 @@ html.calm *,html.calm *::before,html.calm *::after{animation-duration:.001ms!imp
       <div class="grab" id="grab" aria-label="Expand panel"><i></i></div>
       <div class="scroll" id="scroll">
         <div id="panel"></div>
-        <div class="foot">Routes: 36 cities (37 airports) with nonstop Changi flights, from your Changi Routes Dashboard, data as of 3 Nov 2026. Cities: all 332 prefecture-level cities (地级市, 自治州, 地区, 盟) plus the 4 municipalities, excluding 三沙 (its islands are outside this map). Taiwan is drawn for map context only and is not part of the quiz. Airline groups and bases are a study aid, verify before citing in research.</div>
+        <div class="foot" id="foot"><button class="ftog" id="ftog"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.6v.4"/></svg><span>About this data</span><svg class="i chev" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></button><div class="fbody"><div>Routes: 36 cities (37 airports) with nonstop Changi flights, from your Changi Routes Dashboard, data as of 3 Nov 2026. Cities: all 332 prefecture-level cities (地级市, 自治州, 地区, 盟) plus the 4 municipalities, excluding 三沙 (its islands are outside this map). Taiwan is drawn for map context only and is not part of the quiz. Airline groups and bases are a study aid, verify before citing in research.</div></div></div>
       </div>
     </section>
   </main>
@@ -942,6 +959,7 @@ function openHelp(){
   ov.addEventListener('click',e=>{if(!e.target.closest('#hctl'))go(1)});
   addEventListener('resize',draw);addEventListener('keydown',key);draw();store.set('cmt_helpseen',1)}
 $('#help').onclick=openHelp;
+(()=>{const f=$('#foot');f.classList.toggle('open',!!store.get('cmt_note',0));$('#ftog').onclick=()=>{f.classList.toggle('open');store.set('cmt_note',f.classList.contains('open')?1:0)}})();
 setTimeout(()=>{if(!store.get('cmt_helpseen',0)&&!document.querySelector('.help'))toast('New here? Tap ? for a quick guide')},1800);
 let segQ=0;new MutationObserver(()=>{if(!segQ)segQ=requestAnimationFrame(()=>{segQ=0;segThumbs()})}).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','hidden']});
 addEventListener('resize',()=>segThumbs());
