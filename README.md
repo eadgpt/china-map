@@ -7,12 +7,14 @@ A mobile-friendly game for learning the map of China in Chinese: provinces, 简�
 ## Modes
 
 - **训练 Train**: the main game. Turn every province gold. Questions get harder as you level up a province (find it → name & 简称 → capital & neighbours), and your weakest provinces come up most often.
-- **探索 Explore**: tap any province or city for its Chinese name, pinyin, 简称, capital, region, neighbours and Changi routes.
+- **探索 Explore**: search or tap any province or city for its Chinese name, pinyin, 简称, capital, region, neighbours and Changi routes. The Layers button switches labels, regions, all cities and Changi routes.
 - **拖放 Place**: drag names, 简称, capitals or regions onto a blank map.
-- **城市 Cities**: find the 36 Changi-connected cities.
+- **樟宜 Changi**: find the 36 Changi-connected cities.
 
 The Train tab has two tracks: **省份 Provinces** and **城市 Cities**. The city track covers all 332 prefecture-level cities (地级市, 自治州, 地区, 盟), and you can filter it by region. Explore shows every city, and names appear as you zoom in.
 - **航空 Airlines**: Chinese airline short names (国航, 东航, 南航…), groups, bases and who flies from Singapore.
+
+Designed mobile-first in an iOS style, with dark mode, a bottom sheet, smooth zoom and small animations (reduced when the device asks for less motion).
 
 ## Notes
 
