@@ -41,7 +41,7 @@ nav button{border:0;background:transparent;border-radius:9px;padding:7px 2px;fon
 nav button span{display:block;font-size:11px;font-weight:500}
 nav button.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px #0002}
 .mapbox{position:relative;background:var(--sea);border-radius:14px;overflow:hidden;border:1px solid var(--line)}
-svg#map{display:block;width:100%;height:auto;aspect-ratio:520/420;touch-action:none;user-select:none;-webkit-user-select:none}
+svg#map{display:block;width:100%;height:auto;aspect-ratio:522/424;touch-action:none;user-select:none;-webkit-user-select:none}
 .prov{fill:var(--land);stroke:#fff;stroke-width:.8;vector-effect:non-scaling-stroke;stroke-linejoin:round;transition:fill .25s}
 .prov.hl{stroke:var(--ink);stroke-width:1.8}
 .prov.flash-bad{fill:#F3B3AE!important}
@@ -284,8 +284,11 @@ const CT=CT_RAW.map(([s,f,p,lon,lat,py,en])=>{const xy=proj(lon,lat),c={s,f,p,py
 const CTQ=CT.filter(c=>!c.muni);
 // ---------- zoom / pan ----------
 const VB0={x:-6,y:-6,w:522,h:424};let vb={...VB0};
-const setVB=()=>{vb.w=Math.min(Math.max(vb.w,60),VB0.w);vb.h=vb.w*VB0.h/VB0.w;
-  vb.x=Math.min(Math.max(vb.x,VB0.x-vb.w*.3),VB0.x+VB0.w-vb.w*.7);vb.y=Math.min(Math.max(vb.y,VB0.y-vb.h*.3),VB0.y+VB0.h-vb.h*.7);
+const setVB=()=>{vb.w=Math.min(Math.max(vb.w,50),VB0.w);vb.h=vb.w*VB0.h/VB0.w;
+  // keep the map inside the frame: no panning when fully zoomed out, small margin otherwise
+  const mx=vb.w*.15,my=vb.h*.15;
+  vb.x=Math.min(Math.max(vb.x,VB0.x-mx),VB0.x+VB0.w-vb.w+mx);vb.y=Math.min(Math.max(vb.y,VB0.y-my),VB0.y+VB0.h-vb.h+my);
+  if(vb.w>=VB0.w-.01){vb.x=VB0.x;vb.y=VB0.y}
   svg.setAttribute('viewBox',`${vb.x} ${vb.y} ${vb.w} ${vb.h}`);svg.classList.toggle('zoomed',vb.w<230);rescale()};
 function rescale(){const z=vb.w/VB0.w,a=Math.pow(z,.6);svg.style.setProperty('--z',z);svg.style.setProperty('--a',a);
   CT.forEach(c=>{c.dot.setAttribute('r',Math.min(c.cap?2:1.6,(c.cap?5.6:4.6)*z));c.lab.setAttribute('x',c.xy[0]+5.5*z);c.lab.setAttribute('y',c.xy[1]+1.8*z)});
@@ -294,21 +297,33 @@ function rescale(){const z=vb.w/VB0.w,a=Math.pow(z,.6);svg.style.setProperty('--
 function zoomTo(b,pad=.18){const ar=VB0.w/VB0.h;let w=b.width*(1+pad*2),h=b.height*(1+pad*2);if(w/h<ar)w=h*ar;else h=w/ar;w=Math.max(w,70);vb={x:b.x+b.width/2-w/2,y:b.y+b.height/2-w/ar/2,w,h:w/ar};setVB()}
 function bboxOf(names){let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;for(const n of names){const b=PEL[n].getBBox();x0=Math.min(x0,b.x);y0=Math.min(y0,b.y);x1=Math.max(x1,b.x+b.width);y1=Math.max(y1,b.y+b.height)}return{x:x0,y:y0,width:x1-x0,height:y1-y0}}
 const toSvg=(cx,cy)=>{const r=svg.getBoundingClientRect();return[vb.x+(cx-r.left)/r.width*vb.w,vb.y+(cy-r.top)/r.height*vb.h]};
-const zoomAt=(f,sx,sy)=>{vb.x=sx-(sx-vb.x)*f;vb.y=sy-(sy-vb.y)*f;vb.w*=f;setVB()};
+const zoomAt=(f,sx,sy)=>{const w=Math.min(Math.max(vb.w*f,50),VB0.w);f=w/vb.w;vb.x=sx-(sx-vb.x)*f;vb.y=sy-(sy-vb.y)*f;vb.w=w;setVB()};
 $('#zi').onclick=()=>zoomAt(.7,vb.x+vb.w/2,vb.y+vb.h/2);
 $('#zo').onclick=()=>zoomAt(1/.7,vb.x+vb.w/2,vb.y+vb.h/2);
 $('#zr').onclick=()=>{vb={...VB0};setVB()};
 rescale();
 svg.addEventListener('wheel',e=>{e.preventDefault();const[sx,sy]=toSvg(e.clientX,e.clientY);zoomAt(e.deltaY>0?1.15:.87,sx,sy)},{passive:false});
 const ptrs=new Map();let moved=false,pinch0=null;
-svg.addEventListener('pointerdown',e=>{svg.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY,x0:e.clientX,y0:e.clientY});if(ptrs.size===1)moved=false;if(ptrs.size===2){const[a,b]=[...ptrs.values()];pinch0={d:Math.hypot(a.x-b.x,a.y-b.y),w:vb.w}}});
+const mid=()=>{const[a,b]=[...ptrs.values()];return{x:(a.x+b.x)/2,y:(a.y+b.y)/2,d:Math.hypot(a.x-b.x,a.y-b.y)||1}};
+function startPinch(){const m=mid();pinch0={d:m.d,w:vb.w,p:toSvg(m.x,m.y)}}
+svg.addEventListener('pointerdown',e=>{try{svg.setPointerCapture(e.pointerId)}catch(_){}ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY,x0:e.clientX,y0:e.clientY});
+  if(ptrs.size===1)moved=false;if(ptrs.size===2){moved=true;startPinch()}});
 svg.addEventListener('pointermove',e=>{const p=ptrs.get(e.pointerId);if(!p)return;
-  if(ptrs.size===2){p.x=e.clientX;p.y=e.clientY;const[a,b]=[...ptrs.values()];const d=Math.hypot(a.x-b.x,a.y-b.y);const[sx,sy]=toSvg((a.x+b.x)/2,(a.y+b.y)/2);zoomAt((pinch0.w*pinch0.d/d)/vb.w,sx,sy);moved=true;return}
+  if(ptrs.size>=2&&pinch0){p.x=e.clientX;p.y=e.clientY;const m=mid(),r=svg.getBoundingClientRect();
+    // new width from finger spread; then place the map so the point first pinched stays under the fingers
+    const w=Math.min(Math.max(pinch0.w*pinch0.d/m.d,50),VB0.w),h=w*VB0.h/VB0.w;
+    vb.w=w;vb.h=h;vb.x=pinch0.p[0]-(m.x-r.left)/r.width*w;vb.y=pinch0.p[1]-(m.y-r.top)/r.height*h;setVB();return}
   const dx=e.clientX-p.x,dy=e.clientY-p.y;if(Math.hypot(e.clientX-p.x0,e.clientY-p.y0)>7)moved=true;
   if(moved){const r=svg.getBoundingClientRect();vb.x-=dx/r.width*vb.w;vb.y-=dy/r.height*vb.h;setVB()}p.x=e.clientX;p.y=e.clientY});
-const endPtr=e=>{const was=ptrs.size;ptrs.delete(e.pointerId);if(ptrs.size<2)pinch0=null;
+const endPtr=e=>{const was=ptrs.size;ptrs.delete(e.pointerId);
+  if(ptrs.size<2)pinch0=null;
+  // one finger left after a pinch: restart its drag from where it is now, so the map doesn't jump
+  if(ptrs.size===1){const p=[...ptrs.values()][0];p.x0=p.x;p.y0=p.y}
   if(e.type==='pointerup'&&was===1&&!moved)mapTap(e.clientX,e.clientY)};
-svg.addEventListener('pointerup',endPtr);svg.addEventListener('pointercancel',endPtr);
+svg.addEventListener('pointerup',endPtr);svg.addEventListener('pointercancel',endPtr);svg.addEventListener('lostpointercapture',e=>{if(ptrs.has(e.pointerId))endPtr(e)});
+// stop iPhone Safari from zooming/scrolling the whole page while the fingers are on the map
+['gesturestart','gesturechange','gestureend'].forEach(t=>svg.addEventListener(t,e=>e.preventDefault()));
+svg.addEventListener('touchmove',e=>e.preventDefault(),{passive:false});
 
 // hit test: nearest city dot (when dots shown), else province
 function hitProv(cx,cy){
