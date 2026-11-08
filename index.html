@@ -50,8 +50,11 @@ svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stro
 .mapbox{position:relative;flex:0 0 auto;height:min(56%,calc(100vw*.8 + 24px));min-height:0;background:var(--sea);overflow:hidden;transition:height .5s var(--ease)}
 svg#map{display:block;width:100%;height:100%;touch-action:none;user-select:none;-webkit-user-select:none}
 .sheet{position:relative;z-index:3;flex:1 1 auto;min-height:0;margin-top:-20px;background:var(--card);border-radius:22px 22px 0 0;box-shadow:0 -0.5px 0 var(--matLine),0 -10px 30px rgba(0,0,0,.07);display:flex;flex-direction:column;transition:flex-basis .5s var(--ease)}
-.grab{flex:none;height:22px;display:grid;place-items:center;cursor:pointer}
-.grab i{width:38px;height:5px;border-radius:3px;background:var(--sep)}
+.grab{flex:none;height:30px;margin-bottom:-4px;display:grid;place-items:center;cursor:grab;touch-action:none;-webkit-user-select:none;user-select:none}
+.grab:active i{background:var(--mut)}
+.mapbox.dragging{transition:none!important}
+.grab i{width:40px;height:5px;border-radius:3px;background:var(--sep);transition:background .2s,width .25s var(--spring)}
+.grab:active i{width:52px}
 .scroll{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 16px 18px;overscroll-behavior:contain}
 .app.expanded .mapbox{height:30%}
 /* tab bar */
@@ -882,11 +885,23 @@ $('#tabs').querySelectorAll('button').forEach(b=>b.onclick=()=>{const m=b.datase
   $('#tabs').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));clearMarks();clearTimeout(window._tt);CT.forEach(c=>c.dot.style.fill='');
   $('#pop').hidden=true;$('#layersBtn').classList.remove('on');$('#layersBtn').style.display=m==='explore'?'':'none';$('#scroll').scrollTop=0;
   curMode=m;$('#app').dataset.mode=m;MODES[curMode]()});
-// bottom sheet: tap or swipe the grabber to give the panel more room
-(()=>{const g=$('#grab'),app=$('#app');let y0=null;
-  g.addEventListener('pointerdown',e=>{y0=e.clientY;g.setPointerCapture(e.pointerId)});
-  g.addEventListener('pointerup',e=>{if(y0===null)return;const dy=e.clientY-y0;y0=null;
-    if(dy<-15)app.classList.add('expanded');else if(dy>15)app.classList.remove('expanded');else app.classList.toggle('expanded')})})();
+// bottom sheet: drag the handle; it follows your finger and snaps to 3 heights
+(()=>{const g=$('#grab'),mb=$('#mapbox'),stage=$('.stage');const MQ=matchMedia('(max-width:899px) and (orientation:portrait)');
+  let idx=1,drag=null;
+  const snaps=()=>{const S=stage.getBoundingClientRect().height,mid=Math.min(S*.56,innerWidth*.8+24);return[Math.round(S*.3),Math.round(mid),Math.round(Math.max(mid+60,S-190))]};
+  const setH=(h,anim)=>{mb.classList.toggle('dragging',!anim);mb.style.height=h+'px'};
+  const apply=anim=>{if(!MQ.matches){mb.style.height='';return}setH(snaps()[idx],anim)};
+  g.addEventListener('pointerdown',e=>{if(!MQ.matches)return;g.setPointerCapture(e.pointerId);const h=mb.getBoundingClientRect().height;drag={y0:e.clientY,h0:h,h,t:performance.now(),v:0,moved:false}});
+  g.addEventListener('pointermove',e=>{if(!drag)return;const S=stage.getBoundingClientRect().height,dy=e.clientY-drag.y0;if(Math.abs(dy)>5)drag.moved=true;if(!drag.moved)return;
+    let h=drag.h0+dy;const lo=S*.22,hi=S-120;if(h<lo)h=lo-(lo-h)*.25;if(h>hi)h=hi+(h-hi)*.25; // rubber-band past the ends
+    const now=performance.now();drag.v=(h-drag.h)/Math.max(1,now-drag.t);drag.h=h;drag.t=now;setH(h,false)});
+  const end=()=>{if(!drag)return;const d=drag;drag=null;const sn=snaps();
+    if(!d.moved){idx=idx===1?0:1}
+    else if(Math.abs(d.v)>.45){const dir=d.v>0?1:-1;let n=sn.findIndex(x=>x>d.h-1);if(dir<0)n=sn.length-1-[...sn].reverse().findIndex(x=>x<d.h+1);idx=Math.max(0,Math.min(2,n<0?(dir>0?2:0):n))}
+    else idx=sn.reduce((bi,x,i)=>Math.abs(x-d.h)<Math.abs(sn[bi]-d.h)?i:bi,0);
+    apply(true)};
+  g.addEventListener('pointerup',end);g.addEventListener('pointercancel',end);
+  addEventListener('resize',()=>apply(false));MQ.addEventListener?MQ.addEventListener('change',()=>apply(false)):0;apply(false)})();
 // sliding thumb for every segmented control
 function segThumbs(){document.querySelectorAll('.seg').forEach(sg=>{let th=sg.querySelector(':scope>.thumb');const fresh=!th;
   if(fresh){th=document.createElement('i');th.className='thumb';th.style.transition='none';sg.prepend(th)}
