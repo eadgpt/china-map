@@ -16,6 +16,8 @@ The Train tab has two tracks: **省份 Provinces** and **城市 Cities**. The ci
 
 Designed mobile-first in an iOS style, with dark mode, a bottom sheet, smooth zoom and small animations (reduced when the device asks for less motion).
 
+Tap **?** at the top for a guided tour of every button on the current screen.
+
 ## Notes
 
 - Everything is in one file, `index.html`. No build step.

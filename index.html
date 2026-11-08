@@ -112,7 +112,23 @@ svg.allon.zoomed .clab,.clab.on{display:inline}
 .lpop[hidden]{display:none}
 #setpop{position:fixed;top:calc(env(safe-area-inset-top) + 60px);right:12px;bottom:auto;transform-origin:top right;z-index:20}
 .gear{width:38px;height:38px;border-radius:50%;border:0;background:var(--card);display:grid;place-items:center;color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.06);transition:transform .25s var(--spring)}
-.gear:active{transform:scale(.9)}.gear.on{color:var(--acc)}
+.gear:active{transform:scale(.9)}
+@media (max-width:400px){.hstats{gap:5px}.pill{padding:5px 8px}.bar h1{font-size:22px}.gear,.ring,.ring svg{width:34px;height:34px}}
+/* help overlay */
+.help{position:fixed;inset:0;z-index:100;animation:hfade .3s var(--ease)}
+@keyframes hfade{from{opacity:0}}
+.help svg.hs{position:absolute;inset:0;width:100%;height:100%}
+.help .ringx{fill:none;stroke:#fff;stroke-width:2;filter:drop-shadow(0 0 6px rgba(255,255,255,.6))}
+.help .ar{stroke:#fff;stroke-width:1.6;fill:none;stroke-dasharray:var(--len);stroke-dashoffset:var(--len);animation:hdraw .5s var(--ease) forwards;animation-delay:var(--dl)}
+@keyframes hdraw{to{stroke-dashoffset:0}}
+.help .hl{position:absolute;max-width:170px;background:#fff;color:#1C1C1E;border-radius:11px;padding:7px 10px;font-size:13px;font-weight:600;line-height:1.3;box-shadow:0 6px 20px rgba(0,0,0,.35);animation:hpop .45s var(--spring) both;animation-delay:var(--dl)}
+.help .hl b{display:inline-grid;place-items:center;min-width:18px;height:18px;border-radius:9px;background:var(--acc);color:#fff;font-size:11px;margin-right:5px;vertical-align:1px}
+@keyframes hpop{from{opacity:0;transform:scale(.7)}}
+.help .hctl{position:absolute;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:10px;background:rgba(28,28,30,.92);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);color:#fff;border-radius:18px;padding:8px 8px 8px 14px;box-shadow:0 10px 30px rgba(0,0,0,.4);white-space:nowrap;animation:hpop .4s var(--spring) both}
+.help .hctl .tt{font-size:14px;font-weight:700}
+.help .hctl .dots{display:flex;gap:5px}.help .hctl .dots i{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.35)}.help .hctl .dots i.on{background:#fff}
+.help .hctl button{border:0;border-radius:12px;padding:8px 13px;font-size:14px;font-weight:600;background:rgba(255,255,255,.14);color:#fff}
+.help .hctl button.pri{background:var(--acc)}.gear.on{color:var(--acc)}
 #setpop .seg{margin:4px 12px 8px;display:flex;flex-wrap:nowrap}#setpop .seg button{flex:1;white-space:nowrap}
 @keyframes popin{from{opacity:0;transform:scale(.85)}}
 .lpop h4{margin:8px 16px 6px;font-size:12px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:.04em}
@@ -240,7 +256,7 @@ html.calm *,html.calm *::before,html.calm *::after{animation-duration:.001ms!imp
     <div><h1>中国地图</h1><div class="sub"><span id="mlab">Provinces</span> · <span id="mpt">0/33 gold</span></div></div>
     <div class="hstats">
       <span class="pill" id="st">🔥 0</span><span class="pill" id="sc">★ 0</span>
-      <button class="gear" id="gear" aria-label="Settings"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2.2"/><circle cx="9" cy="17" r="2.2"/></svg></button>
+      <button class="gear" id="help" aria-label="How to use"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 0 1 4.8.9c0 1.7-2.4 2.2-2.4 3.6M12 17.2v.3"/></svg></button><button class="gear" id="gear" aria-label="Settings"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2.2"/><circle cx="9" cy="17" r="2.2"/></svg></button>
       <div class="ring" title="Mastery"><svg viewBox="0 0 38 38"><circle class="rt" cx="19" cy="19" r="16"/><circle class="rf" id="rf" cx="19" cy="19" r="16" stroke-dasharray="100.5" stroke-dashoffset="100.5"/></svg><b id="rp">0</b></div>
     </div>
   </header>
@@ -873,6 +889,60 @@ function segThumbs(){document.querySelectorAll('.seg').forEach(sg=>{let th=sg.qu
   const close=()=>{sp.hidden=true;gb.classList.remove('on')};
   gb.onclick=e=>{e.stopPropagation();if(sp.hidden){build();sp.hidden=false;gb.classList.add('on')}else close()};
   document.addEventListener('pointerdown',e=>{if(!sp.hidden&&!sp.contains(e.target)&&!gb.contains(e.target))close()},true)})();
+// ---------- help: coach marks on the live screen ----------
+const HELP_TAB={
+  explore:['探索 Explore',[['#sbox','Search in Chinese, pinyin or English. The map flies there'],['#mapbox','Tap any province or city to learn it. Pinch to zoom; city names appear as you zoom in'],['#info','What you tapped: name, pinyin, capital, Changi flights. Tap the speaker to hear it']]],
+  train:['训练 Train',[['[data-tr=p]','Provinces track'],['[data-tr=c]','Cities track: all 332 cities'],['#sc2','Practise one region at a time'],['#tv','Mandarin voice on or off'],['#ts','Sound effects on or off'],['#tp','Progress: heat map of what you know, and your weakest spots'],['#q','The question. Answer on the map or with the buttons. Questions get harder as you level up']]],
+  place:['拖放 Place',[['#lv','Choose what to place: names, 简称, capitals or regions'],['#hp','Show pinyin on the cards'],['#tray','Drag a card onto the map, or tap a card then tap the place'],['#pst','Progress and mistakes']]],
+  cities:['樟宜 Changi',[['#hd','Hard mode hides the pinyin'],['#q','Find the city or its province. A plane flies the route after you answer'],['#mapbox','Purple lines are nonstop routes from Singapore Changi']]],
+  air:['航空 Airlines',[['#q','Pick the answer. The map then shows that airline’s routes from Singapore'],['details','Cheat sheet: every airline by group, short name and base']]]};
+const HELP_ALL=[
+  ['Top bar',[['.bar h1','App title. Underneath: gold count for this track'],['#st','Streak: right answers in a row'],['#sc','Score'],['#help','This guide'],['#gear','Settings: light or dark, animations, sound, voice'],['.ring','Mastery ring: how much of the map you know']]],
+  ['Map controls',[['#layersBtn','Layers: labels, regions, all cities, Changi routes'],['#zi','Zoom in'],['#zo','Zoom out'],['#zr','Show all of China'],['#grab','Drag up for a bigger panel']]],
+  ['Tabs',[['#tabs [data-m=explore]','Explore the map'],['#tabs [data-m=train]','Train: quiz that levels up'],['#tabs [data-m=place]','Place names on a blank map'],['#tabs [data-m=cities]','Changi: find the 36 cities'],['#tabs [data-m=air]','Airlines: Chinese short names']]]];
+function openHelp(){
+  $('#pop').hidden=true;$('#setpop').hidden=true;$('#gear').classList.remove('on');$('#toast').classList.remove('show');
+  const pages=[HELP_TAB[curMode],...HELP_ALL].map(([t,items])=>[t,items.filter(([sel])=>{const e=document.querySelector(sel);if(!e)return false;const r=e.getBoundingClientRect();return r.width>2&&r.height>2&&r.bottom>0&&r.top<innerHeight})]).filter(p=>p[1].length);
+  let pg=0;const ov=document.createElement('div');ov.className='help';document.body.appendChild(ov);
+  const close=()=>{ov.remove();removeEventListener('resize',draw);removeEventListener('keydown',key)};
+  const key=e=>{if(e.key==='Escape')close();if(e.key==='ArrowRight')go(1);if(e.key==='ArrowLeft')go(-1)};
+  const go=d=>{pg+=d;if(pg>=pages.length)return close();if(pg<0)pg=0;draw()};
+  function draw(){const W=innerWidth,H=innerHeight,[title,items]=pages[pg];
+    const T=items.map(([sel,txt])=>{const r=document.querySelector(sel).getBoundingClientRect();return{r:{x:r.left,y:r.top,w:r.width,h:r.height},txt,big:r.width*r.height>W*H*.18}});
+    let mask='',rings='',lines='',labels='';const boxes=[],pad=5;
+    T.forEach(t=>{const r=t.r;mask+=`<rect x="${r.x-pad}" y="${r.y-pad}" width="${r.w+pad*2}" height="${r.h+pad*2}" rx="12" fill="#000"/>`;rings+=`<rect class="ringx" x="${r.x-pad}" y="${r.y-pad}" width="${r.w+pad*2}" height="${r.h+pad*2}" rx="12"/>`});
+    // measure labels
+    const meas=document.createElement('div');meas.className='hl';meas.style.cssText='visibility:hidden;animation:none';ov.appendChild(meas);
+    const hit=(a,b,m=6)=>a.x<b.x+b.w+m&&a.x+a.w+m>b.x&&a.y<b.y+b.h+m&&a.y+a.h+m>b.y;
+    T.forEach((t,i)=>{meas.innerHTML=`<b>${i+1}</b>${t.txt}`;const w=meas.offsetWidth,h=meas.offsetHeight,r=t.r,cx=r.x+r.w/2,cy=r.y+r.h/2;let box=null;
+      const fits=b=>b.x>=6&&b.y>=6&&b.x+b.w<=W-6&&b.y+b.h<=H-6&&!boxes.some(o=>hit(b,o))&&!T.some(o=>!o.big&&hit(b,o.r,4));
+      if(t.big){box={x:Math.max(8,Math.min(W-w-8,cx-w/2)),y:Math.max(8,Math.min(H-h-8,cy-h/2)),w,h};for(let k=0;k<8&&!fits(box);k++)box.y+=h+8}
+      else{const sides=[cy<H/2?'b':'t',cy<H/2?'t':'b',cx<W/2?'r':'l',cx<W/2?'l':'r'];
+        outer:for(const d of [16,44,76,110,146,184,224,266,310,356,404,452,500])for(const sd of sides){
+          let x=sd==='b'||sd==='t'?cx-w/2:sd==='r'?r.x+r.w+d:r.x-d-w,y=sd==='b'?r.y+r.h+d:sd==='t'?r.y-d-h:cy-h/2;
+          x=Math.max(6,Math.min(W-w-6,x));y=Math.max(6,Math.min(H-h-6,y));const b={x,y,w,h};if(fits(b)){box=b;break outer}}
+        if(!box)box={x:Math.max(6,Math.min(W-w-6,cx-w/2)),y:Math.max(6,Math.min(H-h-6,cy<H/2?r.y+r.h+16:r.y-h-16)),w,h}}
+      boxes.push(box);t.box=box});
+    meas.remove();
+    T.forEach((t,i)=>{const b=t.box,r=t.r,dl=(i*70)+'ms';
+      labels+=`<div class="hl" style="left:${b.x}px;top:${b.y}px;--dl:${dl}"><b>${i+1}</b>${t.txt}</div>`;
+      if(t.big)return;
+      const lx=b.x+b.w/2,ly=b.y+b.h/2,tx=Math.max(r.x-pad,Math.min(r.x+r.w+pad,lx)),ty=Math.max(r.y-pad,Math.min(r.y+r.h+pad,ly)),
+        sx=Math.max(b.x,Math.min(b.x+b.w,tx)),sy=Math.max(b.y,Math.min(b.y+b.h,ty)),len=Math.hypot(tx-sx,ty-sy);
+      if(len>8)lines+=`<path class="ar" d="M${sx},${sy}L${tx},${ty}" marker-end="url(#harr)" style="--len:${len.toFixed(1)};--dl:${dl}"/>`});
+    ov.innerHTML=`<svg class="hs" viewBox="0 0 ${W} ${H}"><defs><mask id="hm"><rect width="${W}" height="${H}" fill="#fff"/>${mask}</mask>
+      <marker id="harr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#fff"/></marker></defs>
+      <rect width="${W}" height="${H}" fill="rgba(0,0,0,.66)" mask="url(#hm)"/>${rings}${lines}</svg>${labels}
+      <div class="hctl" id="hctl"><span class="tt">${title}</span><span class="dots">${pages.map((_,k)=>`<i class="${k===pg?'on':''}"></i>`).join('')}</span>
+      ${pg?'<button id="hb">Back</button>':''}<button class="pri" id="hn">${pg===pages.length-1?'Done':'Next'}</button></div>`;
+    // put the controls where nothing else is
+    const c=$('#hctl'),cw=c.offsetWidth,ch=c.offsetHeight;
+    for(const fy of [.5,.38,.62,.26,.74,.14,.86]){const y=H*fy-ch/2,b={x:W/2-cw/2,y,w:cw,h:ch};if(!boxes.some(o=>hit(b,o,8))&&!T.some(o=>!o.big&&hit(b,o.r,8))){c.style.top=y+'px';break}c.style.top=(H*.5-ch/2)+'px'}
+    $('#hn').onclick=e=>{e.stopPropagation();go(1)};const hb=$('#hb');if(hb)hb.onclick=e=>{e.stopPropagation();go(-1)};}
+  ov.addEventListener('click',e=>{if(!e.target.closest('#hctl'))go(1)});
+  addEventListener('resize',draw);addEventListener('keydown',key);draw();store.set('cmt_helpseen',1)}
+$('#help').onclick=openHelp;
+setTimeout(()=>{if(!store.get('cmt_helpseen',0)&&!document.querySelector('.help'))toast('New here? Tap ? for a quick guide')},1800);
 let segQ=0;new MutationObserver(()=>{if(!segQ)segQ=requestAnimationFrame(()=>{segQ=0;segThumbs()})}).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','hidden']});
 addEventListener('resize',()=>segThumbs());
 
