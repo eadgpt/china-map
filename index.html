@@ -76,6 +76,8 @@ svg.intro .prov{animation:pin .7s var(--ease) both;animation-delay:var(--d)}
 .prov{transform-box:fill-box}
 .lbl{font-size:var(--pf,6.5px);font-weight:700;letter-spacing:.01em;text-anchor:middle;dominant-baseline:central;fill:var(--lblInk);pointer-events:none;paint-order:stroke;stroke:var(--halo);stroke-opacity:.92;stroke-width:calc(var(--pf,6.5px)*.3);stroke-linejoin:round}
 .lbl.sm{font-size:calc(var(--pf,6.5px)*.82)}
+/* pinyin/English: thinner halo so it doesn't fill the small holes in a, g, o; a bit more spacing */
+.lbl.lat{font-weight:600;letter-spacing:.04em;stroke-width:calc(var(--pf,6.5px)*.16);stroke-opacity:1;text-rendering:geometricPrecision}
 .rlbl{font-size:var(--rf,15px);font-weight:800;letter-spacing:.06em;text-anchor:middle;dominant-baseline:central;pointer-events:none;opacity:.62;paint-order:stroke;stroke:var(--halo);stroke-opacity:.6;stroke-width:calc(var(--rf,15px)*.18)}
 .rlbl tspan{font-size:.6em;letter-spacing:.16em;font-weight:700}
 .rl-NB{fill:var(--dNB)}.rl-NE{fill:var(--dNE)}.rl-E{fill:var(--dE)}.rl-C{fill:var(--dC)}.rl-S{fill:var(--dS)}.rl-SW{fill:var(--dSW)}.rl-NW{fill:var(--dNW)}
@@ -285,7 +287,7 @@ html.calm *,html.calm *::before,html.calm *::after{animation-duration:.001ms!imp
     <div class="mapbox" id="mapbox">
       <svg id="map" class="intro" viewBox="-6 -6 522 424" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
         <g id="vp">
-          <g id="provs"></g><g id="arcs"></g><g id="regs"></g><g id="lbls"></g><g id="calls"></g><g id="all"></g><g id="dots"></g><g id="sin" class="sin"></g><g id="fx" class="fx"></g>
+          <g id="provs"></g><g id="arcs"></g><g id="regs"></g><g id="calls"></g><g id="all"></g><g id="lbls"></g><g id="dots"></g><g id="sin" class="sin"></g><g id="fx" class="fx"></g>
         </g>
       </svg>
       <div class="lpop mat" id="pop" hidden></div>
@@ -586,7 +588,7 @@ function ctReset(){svg.classList.remove('allon');CT.forEach(c=>{c.dot.setAttribu
 // layers
 const L={labels:'cn',regions:true,routes:false,mastery:false,all:true};
 function paint(fillFn){for(const nm in PEL){if(!PI[nm])continue;PEL[nm].style.fill=fillFn(nm)||''}}
-function drawLabels(fn){gL.innerHTML='';for(const nm in GEO){if(!PI[nm]||SMALL[nm])continue;const s=fn(nm);if(!s)continue;const l=GEO[nm].l||GEO[nm].c;const t=el('text',{x:l[0],y:l[1],class:'lbl'+(s.length>4?' sm':'')},gL);t.textContent=s}
+function drawLabels(fn){gL.innerHTML='';for(const nm in GEO){if(!PI[nm]||SMALL[nm])continue;const s=fn(nm);if(!s)continue;const l=GEO[nm].l||GEO[nm].c;const t=el('text',{x:l[0],y:l[1],class:'lbl'+(s.length>4?' sm':'')+(/[A-Za-z]/.test(s)?' lat':'')},gL);t.textContent=s}
   for(const g of gC.children){const nm=g.dataset.p,s=fn(nm);g._t.textContent=s?PI[nm].ab:''}}
 function showDots(on,labels){gD.style.display=on?'':'none';CITY.forEach(c=>{c.dot.setAttribute('class','dot');c.lbl.style.display=labels?'':'none'})}
 function showArcs(on,filter){gA.style.display=on?'':'none';gS.style.display=on?'':'none';CITY.forEach(c=>c.arc.setAttribute('class','arc'+(filter&&filter(c)?' hot':'')))}
