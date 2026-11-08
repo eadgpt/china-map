@@ -31,8 +31,9 @@ svg.allon .cdot,.cdot.on{display:inline}
 .cdot.cap{stroke:#1D2433;stroke-width:1.2;fill:#FFE9A8}
 .cdot.ok{fill:var(--ok);stroke:#fff}.cdot.bad{fill:var(--bad);stroke:#fff}.cdot.tgt{fill:#8E73F0;stroke:#fff;stroke-width:1.2}
 .cdot.pulse{animation:pd 1s ease-in-out 3}@keyframes pd{50%{fill:#6FD39E}}
-.clab{display:none;font-size:calc(14px*var(--z,1));font-weight:600;fill:#3A4152;pointer-events:none;paint-order:stroke;stroke:#fff;stroke-width:calc(3px*var(--z,1))}
+.clab{display:none;font-size:calc(12px*var(--z,1));font-weight:500;fill:#5A6172;pointer-events:none;paint-order:stroke;stroke:#fff;stroke-width:calc(3px*var(--z,1))}
 svg.allon.zoomed .clab,.clab.on{display:inline}
+.clab.cap{font-weight:700;fill:#1D2433}
 .chips{display:flex;gap:5px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch}
 .chips button{flex:none;border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 10px;font:inherit;font-size:13px;font-weight:600;color:var(--mut)}
 .chips button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
@@ -47,8 +48,11 @@ svg#map{display:block;width:100%;height:auto;aspect-ratio:522/424;touch-action:n
 .prov.flash-bad{fill:#F3B3AE!important}
 .prov.flash-ok{fill:#9FE3BF!important}
 .prov.na{fill:#D9D6CF;pointer-events:none}
-.lbl{font-size:calc(7.5px*var(--a,1));font-weight:600;text-anchor:middle;dominant-baseline:central;fill:#2A3142;pointer-events:none;paint-order:stroke;stroke:#ffffffcc;stroke-width:calc(2px*var(--a,1))}
-.lbl.sm{font-size:calc(6px*var(--a,1))}
+.lbl{font-size:var(--pf,6.5px);font-weight:800;letter-spacing:.02em;text-anchor:middle;dominant-baseline:central;fill:#141A26;pointer-events:none;paint-order:stroke;stroke:#fffffff0;stroke-width:calc(var(--pf,6.5px)*.32)}
+.lbl.sm{font-size:calc(var(--pf,6.5px)*.82)}
+.rlbl{font-size:calc(15.5px*var(--z,1));font-weight:800;letter-spacing:.08em;text-anchor:middle;dominant-baseline:central;pointer-events:none;opacity:.6;paint-order:stroke;stroke:#ffffffb0;stroke-width:calc(3px*var(--z,1))}
+.rlbl tspan{font-size:.62em;letter-spacing:.14em}
+svg.zoomed .rlbl{display:none}
 .callout circle{fill:#fff;stroke:#8B92A3;stroke-width:.8;vector-effect:non-scaling-stroke}
 .callout line{stroke:#8B92A3;stroke-width:.7;vector-effect:non-scaling-stroke}
 .callout text{font-size:calc(5.5px*var(--a,1));font-weight:700;text-anchor:middle;dominant-baseline:central;pointer-events:none}
@@ -59,9 +63,9 @@ svg#map{display:block;width:100%;height:auto;aspect-ratio:522/424;touch-action:n
 .dot.ok{fill:var(--ok);stroke:#fff}
 .dot.bad{fill:var(--bad);stroke:#fff}
 .dot.base{fill:#FFB020;stroke:#fff}
-.clbl{font-size:calc(5.5px*var(--a,1));font-weight:600;fill:#3B2A8C;pointer-events:none;paint-order:stroke;stroke:#fff;stroke-width:calc(1.6px*var(--a,1))}
+.clbl{font-size:calc(12px*var(--z,1));font-weight:700;fill:#3B2A8C;pointer-events:none;paint-order:stroke;stroke:#fff;stroke-width:calc(3px*var(--z,1))}
 .sin text{font-size:calc(6.5px*var(--a,1));font-weight:700;fill:var(--acc)}
-.zoom{position:absolute;right:8px;top:8px;display:flex;flex-direction:column;gap:4px}
+.zoom{position:absolute;right:8px;bottom:8px;display:flex;flex-direction:column;gap:4px}
 .zoom button{width:34px;height:34px;border-radius:9px;border:1px solid var(--line);background:#fffe;font-size:18px;font-weight:600;color:var(--ink)}
 .toast{position:absolute;left:50%;top:10px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:6px 12px;border-radius:999px;font-size:13px;font-weight:600;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap;max-width:90%;overflow:hidden;text-overflow:ellipsis}
 .toast.show{opacity:.92}
@@ -114,8 +118,8 @@ summary{font-weight:700;cursor:pointer;padding:4px 0}
 </header>
 <div class="mbar"><span id="mlab">🗺 Provinces</span><div class="prog"><i id="mpg"></i></div><span id="mpt">0%</span></div>
 <nav id="tabs">
-  <button data-m="train" class="on">训练<span>Train</span></button>
-  <button data-m="explore">探索<span>Explore</span></button>
+  <button data-m="explore" class="on">探索<span>Explore</span></button>
+  <button data-m="train">训练<span>Train</span></button>
   <button data-m="place">拖放<span>Place</span></button>
   <button data-m="cities">城市<span>Cities</span></button>
   <button data-m="air">航空<span>Airlines</span></button>
@@ -125,6 +129,7 @@ summary{font-weight:700;cursor:pointer;padding:4px 0}
     <g id="vp">
       <g id="provs"></g>
       <g id="arcs"></g>
+      <g id="regs"></g>
       <g id="lbls"></g>
       <g id="calls"></g>
       <g id="all"></g>
@@ -264,6 +269,10 @@ for(const nm in SMALL){
   el('circle',{cx:bx,cy:by,r:7,'data-p':nm},g);
   const t=el('text',{x:bx,y:by},g);t.textContent=PI[nm].ab;g._t=t;
 }
+const RPOS={NB:[108.6,42.3],NE:[125.3,45.2],E:[125.4,29.3],C:[110.4,29.7],S:[115.5,19.6],SW:[93.5,28.4],NW:[94,40.3]};
+const RDARK={NB:'#8A6A12',NE:'#2F6E9E',E:'#23824F',C:'#A9542A',S:'#A8325A',SW:'#5E43A8',NW:'#7D5B33'};
+const gR=$('#regs');for(const k in RPOS){const [x,y]=proj(...RPOS[k]);const t=el('text',{x,y,class:'rlbl',fill:RDARK[k]},gR);t.innerHTML=`${REG[k][0]}<tspan x="${x}" dy="1.15em">${REG[k][2].toUpperCase()}</tspan>`}
+const showRegs=on=>gR.style.display=on?'':'none';showRegs(false);
 const SIN=proj(103.82,14.6);
 el('circle',{cx:SIN[0],cy:SIN[1],r:3.2,fill:'#5B3FD1'},gS);
 const st=el('text',{x:SIN[0]+6,y:SIN[1]+2},gS);st.textContent='▼ 新加坡樟宜 SIN (off map, 1.35°N)';
@@ -280,7 +289,7 @@ const gAll=$('#all');
 const CT=CT_RAW.map(([s,f,p,lon,lat,py,en])=>{const xy=proj(lon,lat),c={s,f,p,py,en,xy,cap:!!PI[p]&&PI[p].cap===s&&s!==p,muni:s===p};
   c.sin=CITY.find(x=>x.cn===s)||null;
   c.dot=el('circle',{cx:xy[0],cy:xy[1],r:c.cap?2:1.6,class:'cdot'+(c.cap?' cap':'')},gAll);
-  c.lab=el('text',{x:xy[0]+2.4,y:xy[1]+1.3,class:'clab'},gAll);c.lab.textContent=s;return c});
+  c.lab=el('text',{x:xy[0]+2.4,y:xy[1]+1.3,class:'clab'+(c.cap?' cap':'')},gAll);c.lab.textContent=s;return c});
 const CTQ=CT.filter(c=>!c.muni);
 // ---------- zoom / pan ----------
 const VB0={x:-6,y:-6,w:522,h:424};let vb={...VB0};
@@ -291,6 +300,7 @@ const setVB=()=>{vb.w=Math.min(Math.max(vb.w,50),VB0.w);vb.h=vb.w*VB0.h/VB0.w;
   if(vb.w>=VB0.w-.01){vb.x=VB0.x;vb.y=VB0.y}
   svg.setAttribute('viewBox',`${vb.x} ${vb.y} ${vb.w} ${vb.h}`);svg.classList.toggle('zoomed',vb.w<230);rescale()};
 function rescale(){const z=vb.w/VB0.w,a=Math.pow(z,.6);svg.style.setProperty('--z',z);svg.style.setProperty('--a',a);
+  const pxs=6.5+5.5*Math.min(1,(1-z)/.6);svg.style.setProperty('--pf',(pxs*z/.747)+'px');
   CT.forEach(c=>{c.dot.setAttribute('r',Math.min(c.cap?2:1.6,(c.cap?5.6:4.6)*z));c.lab.setAttribute('x',c.xy[0]+5.5*z);c.lab.setAttribute('y',c.xy[1]+1.8*z)});
   CITY.forEach(c=>{c.dot.setAttribute('r',3*Math.sqrt(z));c.lbl.setAttribute('x',c.xy[0]+4*a)});
   for(const g of gC.children)g.querySelector('circle').setAttribute('r',7*a)}
@@ -372,7 +382,7 @@ function clearMarks(){for(const k in PEL)PEL[k].classList.remove('hl','tgt','pul
 function ctReset(){svg.classList.remove('allon');CT.forEach(c=>{c.dot.setAttribute('class','cdot'+(c.cap?' cap':''));c.lab.classList.remove('on')})}
 
 // layers
-const L={labels:'cn',regions:true,routes:true,dots:true,mastery:false,all:true};
+const L={labels:'cn',regions:true,routes:false,mastery:false,all:true};
 function paint(fillFn){for(const nm in PEL){if(!PI[nm])continue;PEL[nm].style.fill=fillFn(nm)||''}}
 function drawLabels(fn){gL.innerHTML='';for(const nm in GEO){if(!PI[nm]||SMALL[nm])continue;const s=fn(nm);if(!s)continue;const l=GEO[nm].l||GEO[nm].c;const t=el('text',{x:l[0],y:l[1],class:'lbl'+(s.length>4?' sm':'')},gL);t.textContent=s}
   for(const g of gC.children){const nm=g.dataset.p,s=fn(nm);g._t.textContent=s?PI[nm].ab:''}}
@@ -384,16 +394,17 @@ const P=$('#panel');
 
 // ---------- EXPLORE ----------
 function explore(){
-  const render=()=>{paint(nm=>L.mastery?MCOL[stars(nm)]:L.regions?RC(PI[nm].r):'');drawLabels(labelOf);legend(L.regions&&!L.mastery);showArcs(L.routes);showDots(L.dots,L.dots&&vb.w<300&&!L.all);ctReset();svg.classList.toggle('allon',L.all)};
+  const render=()=>{paint(nm=>L.mastery?MCOL[stars(nm)]:L.regions?RC(PI[nm].r):'');drawLabels(labelOf);legend(L.regions&&!L.mastery);showRegs(L.regions&&!L.mastery&&!L.routes&&L.labels!=='off');showArcs(L.routes);showDots(L.routes,L.routes);ctReset();svg.classList.toggle('allon',L.all);
+    P.querySelectorAll('[data-t]').forEach(x=>x.classList.toggle('on',!!L[x.dataset.t]))};
   P.innerHTML=`<div class="row" style="margin-bottom:8px"><div class="seg" id="lab">${[['cn','中文'],['py','Pinyin'],['en','EN'],['ab','简称'],['off','Off']].map(([k,v])=>`<button data-k="${k}" class="${L.labels===k?'on':''}">${v}</button>`).join('')}</div></div>
-  <div class="row"><button class="tog ${L.regions?'on':''}" data-t="regions">地区 Regions</button><button class="tog ${L.routes?'on':''}" data-t="routes">✈ Changi routes</button><button class="tog ${L.dots?'on':''}" data-t="dots">● Cities</button><button class="tog ${L.all?'on':''}" data-t="all">◦ All cities</button><button class="tog ${L.mastery?'on':''}" data-t="mastery">★ My mastery</button></div>
-  <div id="info" style="margin-top:10px"><div class="mut">Tap a province or a city dot. Zoom in (pinch or +) to see all 336 city names. Gold dots are provincial capitals.</div></div>`;
+  <div class="row"><button class="tog ${L.regions?'on':''}" data-t="regions">地区 Regions</button><button class="tog" data-t="all">◦ All cities</button><button class="tog" data-t="routes">✈ Changi routes only</button><button class="tog ${L.mastery?'on':''}" data-t="mastery">★ My mastery</button></div>
+  <div id="info" style="margin-top:10px"><div class="mut">Tap a province or a city dot. Zoom in (pinch or +) to see all 336 city names; gold dots are provincial capitals. Turn on ✈ to see only the 36 cities with Changi flights.</div></div>`;
   P.querySelectorAll('#lab button').forEach(b=>b.onclick=()=>{L.labels=b.dataset.k;P.querySelectorAll('#lab button').forEach(x=>x.classList.toggle('on',x===b));render()});
-  P.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{L[b.dataset.t]=!L[b.dataset.t];b.classList.toggle('on');render()});
+  P.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{const t=b.dataset.t;L[t]=!L[t];if(t==='routes'&&L.routes)L.all=false;if(t==='all'&&L.all)L.routes=false;render()});
   render();
   onTap=(cx,cy)=>{for(const k in PEL)PEL[k].classList.remove('hl');
     const a=L.all&&hitDot(cx,cy,CT);if(a){ctCard(a);showArcs(L.routes,x=>a.sin===x);CITY.forEach(x=>x.dot.setAttribute('class','dot'+(x===a.sin?' hot':'')));return}
-    const c=L.dots&&hitCity(cx,cy);
+    const c=L.routes&&hitCity(cx,cy);
     if(c){cityCard(c);showArcs(L.routes,x=>x===c);c.dot.setAttribute('class','dot hot');return}
     const nm=hitProv(cx,cy);if(!nm)return;PEL[nm].classList.add('hl');provCard(nm);showArcs(L.routes,x=>x.prov===nm);CITY.forEach(x=>x.dot.setAttribute('class','dot'+(x.prov===nm?' hot':'')))};
 }
@@ -424,7 +435,7 @@ const PLACE_LV={
  reg:{t:'地区 Regions'}};
 let placeLv='cn',hintPy=true;
 function place(){
-  showArcs(false);showDots(false);legend(false);
+  showArcs(false);showDots(false);legend(false);showRegs(false);
   const lv=PLACE_LV[placeLv];let pool,done=new Set(),miss=0,sel=null,t0=Date.now();
   if(placeLv==='reg'){pool=shuffle(Object.keys(REG)).map(k=>({id:k,lab:[REG[k][0],REG[k][2]]}))}
   else pool=shuffle(PROV.map(p=>PI[p[0]]).filter(p=>!lv.filter||lv.filter(p))).map(p=>({id:p.cn,lab:lv.chip(p)}));
@@ -476,7 +487,7 @@ const trackSeg=()=>`<div class="seg" style="margin-bottom:8px;width:100%;display
 function bindTrack(){P.querySelectorAll('[data-tr]').forEach(b=>b.onclick=()=>{if(TRK===b.dataset.tr)return;TRK=b.dataset.tr;store.set('cmt_track',TRK);trainView='q';mbar();train()})}
 function train(){clearTimeout(window._tt);ctReset();clearMarks();vb={...VB0};setVB();mbar();TRK==='c'?trainCity():trainProv()}
 function trainProv(){
-  showArcs(false);showDots(false);legend(false);
+  showArcs(false);showDots(false);legend(false);showRegs(false);
   let Q=null,locked=false;clearTimeout(window._tt);
   const head=`<div class="row" style="justify-content:space-between;margin-bottom:6px"><span class="mut" id="ss"></span>
     <span class="row"><button class="tog ${SET.voice?'on':''}" id="tv">🔊</button><button class="tog ${SET.snd?'on':''}" id="ts">🔔</button><button class="tog" id="tp">🗺 Progress</button></span></div>`;
@@ -532,7 +543,7 @@ function trainProv(){
 // ---------- TRAIN: all cities ----------
 let cScope=store.get('cmt_cscope','all'),cRecent=[];
 function trainCity(){
-  showArcs(false);showDots(false);legend(false);paint(()=>'');drawLabels(()=>'');
+  showArcs(false);showDots(false);legend(false);showRegs(false);paint(()=>'');drawLabels(()=>'');
   let Q=null,locked=false,cands=[];
   const pool=()=>CTQ.filter(c=>cScope==='all'||PI[c.p].r===cScope);
   P.innerHTML=trackSeg()+`<div class="chips" id="sc2"><button data-s="all" class="${cScope==='all'?'on':''}">全部 All</button>${Object.entries(REG).map(([k,v])=>`<button data-s="${k}" class="${cScope===k?'on':''}">${v[0]} ${v[2]}</button>`).join('')}</div>
@@ -588,7 +599,7 @@ function trainCity(){
 // ---------- CITIES ----------
 let cityHard=false;
 function cities(){
-  paint(()=>'');drawLabels(()=>'');legend(false);showArcs(true);showDots(true,false);
+  paint(()=>'');drawLabels(()=>'');legend(false);showRegs(false);showArcs(true);showDots(true,false);
   const qs=shuffle(CITY).slice(0,10).map(c=>({c,type:Math.random()<.6?'dot':'prov'}));let i=0,right=0,locked=false;
   P.innerHTML=`<div class="row" style="justify-content:space-between"><div class="mut" id="qn"></div><button class="tog ${cityHard?'on':''}" id="hd">Hard: hide pinyin</button></div>
   <div class="prog"><i id="pg"></i></div><div id="q" style="text-align:center"></div>`;
@@ -622,7 +633,7 @@ function airQ(){
   return{a:ok,city:c,q:`<div class="mut">Which Chinese airline flies</div><div class="big" style="font-size:24px">SIN ⇄ ${c.cn}</div><div class="mut">${c.py} · ${c.en}</div>`,opts:shuffle([ok,...wrong]).map(x=>({ok:x===ok,h:`${AL[x][1]}<small>${x}</small>`}))};
 }
 function air(){
-  paint(()=>'');drawLabels(()=>'');legend(false);showArcs(true);showDots(true,false);onTap=(cx,cy)=>{const c=hitCity(cx,cy);if(c)toast(`${c.cn} ${c.en}: ${c.al.map(a=>AL[a][1]).join('、')}`)};
+  paint(()=>'');drawLabels(()=>'');legend(false);showRegs(false);showArcs(true);showDots(true,false);onTap=(cx,cy)=>{const c=hitCity(cx,cy);if(c)toast(`${c.cn} ${c.en}: ${c.al.map(a=>AL[a][1]).join('、')}`)};
   let i=0,right=0;
   P.innerHTML=`<div class="mut" id="qn"></div><div class="prog"><i id="pg"></i></div><div id="q" style="text-align:center"></div>
   <details><summary>📖 Cheat sheet: airlines on Changi–China routes</summary>${Object.keys(GRP).map(g=>{const ls=Object.keys(AL).filter(a=>AL[a][3]===g);return`<div class="grp" style="color:${GRP[g][2]}">${GRP[g][0]} ${GRP[g][1]}</div>`+ls.map(a=>{const m=AL[a],cs=CITY.filter(c=>c.al.includes(a));return`<div class="al"><div class="code">${m[2]}</div><div><b>${m[1]}</b> ${m[0]} · ${a}<div class="mut">Base: ${m[4]} ${m[5]}</div><div class="mut">SIN ⇄ ${cs.map(c=>c.cn).join('、')} (${cs.length})</div></div></div>`}).join('')}).join('')}
@@ -640,9 +651,9 @@ function air(){
 }
 
 // ---------- tabs ----------
-const MODES={train,explore,place,cities,air};let curMode='train';
+const MODES={train,explore,place,cities,air};let curMode='explore';
 $('#tabs').querySelectorAll('button').forEach(b=>b.onclick=()=>{$('#tabs').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));clearMarks();clearTimeout(window._tt);CT.forEach(c=>c.dot.style.fill='');curMode=b.dataset.m;MODES[curMode]()});
-mbar();train();
+mbar();explore();
 </script>
 </body>
 </html>
