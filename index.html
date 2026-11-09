@@ -150,7 +150,20 @@ svg.allon.zoomed .clab,.clab.on{display:inline}
 .legend{position:absolute;left:12px;bottom:32px;z-index:2;display:flex;flex-wrap:wrap;gap:3px 9px;max-width:calc(100% - 90px);padding:7px 11px;border-radius:14px;font-size:11px;font-weight:600;color:var(--ink)}
 .legend:empty{display:none}
 .legend i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;vertical-align:0}
-.toast{position:absolute;left:50%;top:12px;z-index:6;transform:translate(-50%,-30px) scale(.9);opacity:0;padding:9px 16px;border-radius:999px;background:rgba(20,20,22,.86);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);color:#fff;font-size:14px;font-weight:600;white-space:nowrap;max-width:calc(100% - 120px);overflow:hidden;text-overflow:ellipsis;pointer-events:none;transition:transform .45s var(--spring),opacity .25s}
+.qkind{display:inline-block;font-size:11.5px;font-weight:700;letter-spacing:.05em;color:var(--acc);background:var(--accSoft);padding:3px 10px;border-radius:999px;margin:4px 0 6px}
+.qhow{display:inline-flex;align-items:center;gap:8px;margin-top:12px;padding:9px 14px;border-radius:12px;background:var(--card2);font-size:15px;font-weight:600;color:var(--ink);text-align:left}
+.qhow svg.i{color:var(--acc);width:19px;height:19px}
+.qact{display:flex;justify-content:center;gap:6px;margin-top:10px}
+.lnk{display:inline-flex;align-items:center;gap:5px;border:0;background:none;color:var(--acc);font-weight:600;font-size:14px;padding:6px 10px;border-radius:10px}
+.lnk:active{background:var(--accSoft)}.lnk[disabled]{opacity:.4}
+.opt.gone{opacity:.22;pointer-events:none;transform:scale(.96)}
+.intro{position:relative;text-align:left;background:var(--accSoft);border-radius:14px;padding:11px 14px;margin:4px 0 10px;font-size:13.5px;line-height:1.45}
+.intro b{color:var(--acc)}.intro button{margin-top:8px}
+#mcue{position:absolute;left:50%;top:12px;z-index:5;display:flex;align-items:center;gap:7px;max-width:calc(100% - 110px);padding:8px 14px;border-radius:999px;background:var(--mat);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);box-shadow:var(--shadow);font-size:14px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none;opacity:0;transform:translate(-50%,-12px) scale(.94);transition:opacity .25s,transform .45s var(--spring)}
+#mcue.show{opacity:1;transform:translate(-50%,0) scale(1)}
+#mcue span{overflow:hidden;text-overflow:ellipsis}
+#mcue svg.i{width:18px;height:18px;color:var(--acc);flex:none}
+.toast{position:absolute;left:50%;top:58px;z-index:6;transform:translate(-50%,-30px) scale(.9);opacity:0;padding:9px 16px;border-radius:999px;background:rgba(20,20,22,.86);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);color:#fff;font-size:14px;font-weight:600;white-space:nowrap;max-width:calc(100% - 120px);overflow:hidden;text-overflow:ellipsis;pointer-events:none;transition:transform .45s var(--spring),opacity .25s}
 .toast.show{transform:translate(-50%,0) scale(1);opacity:1}
 /* sheet content */
 #panel>*,#q>*,#info>*,#fb>*,.tray>*,#sres>*{animation:rise .42s var(--ease) both}
@@ -295,6 +308,7 @@ html.calm *,html.calm *::before,html.calm *::after{animation-duration:.001ms!imp
       <div class="lpop mat" id="pop" hidden></div>
       <div class="mapctl"><div class="ctl mat"><button id="layersBtn" aria-label="Map layers"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 3 8l9 4.5L21 8z"/><path d="m3 12.3 9 4.5 9-4.5"/><path d="m3 16.3 9 4.5 9-4.5"/></svg></button><button id="zi" aria-label="Zoom in"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button><button id="zo" aria-label="Zoom out"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></button><button id="zr" aria-label="Show all of China"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M10 20H4v-6M20 4l-6.5 6.5M4 20l6.5-6.5"/></svg></button></div></div>
       <div class="legend mat" id="legend"></div>
+      <div id="mcue"></div>
       <div class="toast" id="toast"></div>
     </div>
     <section class="sheet" id="sheet">
@@ -717,6 +731,13 @@ function place(){
   refresh();drawTray();status();
 }
 
+// ---------- question helpers ----------
+const scrollPanel=bottom=>{const sc=$('#scroll');requestAnimationFrame(()=>sc.scrollTo({top:bottom?sc.scrollHeight:0,behavior:RM?'auto':'smooth'}))};
+function mapCue(t){const m=$('#mcue');if(!t){m.classList.remove('show');return}m.innerHTML=ic('hand')+`<span>${t}</span>`;m.classList.add('show')}
+const qAct=()=>`<div class="qact"><button class="lnk" id="qhint">${ic('info')} Hint</button><button class="lnk" id="qidk">I don’t know</button></div>`;
+function introCard(key){if(store.get(key,0))return'';return`<div class="intro" id="intro"><b>How Train works</b><br>Each question names a place. If it says <b>Tap … on the map</b>, tap it on the map. If you see buttons, pick one. Stuck? Use <b>Hint</b> or <b>I don’t know</b>. Places turn gold as you learn them.<br><button class="btn" style="padding:7px 14px;font-size:14px" onclick="this.closest('.intro').remove();store.set('${key}',1)">Got it</button></div>`}
+function fiftyFifty(Q){const wrong=Q.opts.map((o,i)=>o.ok?-1:i).filter(i=>i>=0);shuffle(wrong).slice(0,2).forEach(i=>$('#q').querySelectorAll('.opt')[i].classList.add('gone'))}
+
 // ---------- TRAIN (mastery loop) ----------
 let recent=[],trainView='q',trainPy=null,sess={n:0,ok:0};
 function pickTarget(){const pool=ALLP.filter(n=>!recent.includes(n));let tot=0;const w=pool.map(n=>{const x=(MAXP+1-pts(n))**2;tot+=x;return x});
@@ -739,41 +760,45 @@ function trainProv(){
   $('#ts').onclick=e=>{SET.snd=!SET.snd;e.currentTarget.classList.toggle('on');store.set('cmt_set',SET)};
   $('#tp').onclick=()=>{trainView=trainView==='q'?'prog':'q';clearTimeout(window._tt);trainView==='prog'?progress():ask()};
   const ss=()=>$('#ss').textContent=sess.n?`This session ${sess.ok}/${sess.n}`:'Unlock the map: turn every province gold';
-  function progress(){$('#tp').classList.add('on');clearMarks();paint(nm=>MCOL[stars(nm)]);drawLabels(nm=>PI[nm].cn);
+  function progress(){mapCue('');$('#tp').classList.add('on');clearMarks();paint(nm=>MCOL[stars(nm)]);drawLabels(nm=>PI[nm].cn);
     const weak=[...ALLP].sort((a,b)=>pts(a)-pts(b)).slice(0,6);
     $('#q').innerHTML=`<div class="mut">Gold = mastered (★★★). Weakest right now:</div><div style="margin:8px 0">${weak.map(n=>`<span class="tag">${n} ${PI[n].en} <span class="stars">${starStr(stars(n))}</span></span>`).join('')}</div>
       <div class="mut">Questions get harder as a province levels up: find it → name & 简称 → capital & neighbours.</div><br><button class="btn" id="go">Continue training</button>
       <button class="btn alt" id="rs" style="margin-left:6px">Reset progress</button>`;
     $('#go').onclick=()=>{trainView='q';$('#tp').classList.remove('on');ask()};
     $('#rs').onclick=()=>{if($('#rs').dataset.c){for(const k in MS)delete MS[k];store.set('cmt_mastery',MS);mbar();progress()}else{$('#rs').dataset.c=1;$('#rs').textContent='Tap again to confirm'}}}
-  function ask(){clearTimeout(window._tt);locked=false;clearMarks();paint(()=>'');drawLabels(()=>'');ss();
+  function ask(){clearTimeout(window._tt);locked=false;scrollPanel(false);clearMarks();paint(()=>'');drawLabels(()=>'');ss();
     drawLabels(n=>SMALL[n]&&stars(n)>=2?'1':'');const nm=pickTarget();recent=[nm,...recent].slice(0,4);const type=pick(typesFor(nm)),p=PI[nm],lvl=stars(nm);
     const showPy=trainPy??(pts(nm)<2);Q={nm,type};window._q=Q;
     const pyH=t=>showPy?`<div class="py">${t}</div>`:'';
     const st=`<div class="stars" style="font-size:13px">${starStr(lvl)}</div>`;
     let h='';
-    if(type==='find'){h=`<div class="mut">找一找 · Tap this province</div><div class="qbig">${p.cn}</div>${pyH(p.py)}`}
-    else if(type==='capital'){h=`<div class="mut">省会 · Which province has this capital? Tap it</div><div class="qbig">${p.cap}</div>${pyH(p.cappy)}`}
-    else if(type==='neighbor'){tgt(nm,true);h=`<div class="mut">邻省 · Tap any province that borders</div><div class="qbig">${p.cn}</div>${pyH(p.py)}<div class="mut">(highlighted)</div>`}
+    if(type==='find'){h=`<div class="qkind">找一找 · FIND IT</div><div class="qbig">${p.cn}</div>${pyH(p.py)}<div class="qhow">${ic('hand')}Tap ${p.cn} on the map</div>`;mapCue(`Tap ${p.cn} on the map`)}
+    else if(type==='capital'){h=`<div class="qkind">省会 · CAPITAL</div><div class="qbig">${p.cap}</div>${pyH(p.cappy)}<div class="qhow">${ic('hand')}Tap the province whose capital is ${p.cap}</div>`;mapCue(`Tap the province with capital ${p.cap}`)}
+    else if(type==='neighbor'){tgt(nm,true);h=`<div class="qkind">邻省 · NEIGHBOURS</div><div class="qbig">${p.cn}</div>${pyH(p.py)}<div class="qhow">${ic('hand')}Tap any province that borders ${p.cn} (purple)</div>`;mapCue(`Tap a neighbour of the purple province`)}
     else{tgt(nm,true);let opts,ttl;
-      if(type==='name'){ttl='这是哪个省？ · Name the highlighted province';opts=shuffle([nm,...distract(nm,3)]).map(x=>({ok:x===nm,h:x+(showPy?`<small>${PI[x].py}</small>`:'')}))}
+      mapCue(type==='name'?'Which province is purple? Answer below':'Answer with the buttons below');
+      if(type==='name'){ttl='这是哪个省？ · Which province is purple on the map?';opts=shuffle([nm,...distract(nm,3)]).map(x=>({ok:x===nm,h:x+(showPy?`<small>${PI[x].py}</small>`:'')}))}
       if(type==='abbr'){ttl=`简称 · What is the short name of ${p.cn}?`;const ds=distract(nm,3);opts=shuffle([nm,...ds]).map(x=>({ok:x===nm,h:`<span style="font-size:22px">${PI[x].ab}</span>`}))}
       if(type==='region'){ttl=`地区 · Which region is ${p.cn} in?`;const rs=shuffle(Object.keys(REG).filter(r=>r!==p.r)).slice(0,3);opts=shuffle([p.r,...rs]).map(r=>({ok:r===p.r,h:`${REG[r][0]}<small>${REG[r][2]}</small>`}))}
-      h=`<div class="mut">${ttl}</div>${type!=='name'?`<div class="qbig" style="font-size:28px">${p.cn}</div>`:''}<div class="opts">${opts.map((o,k)=>`<button class="opt" data-k="${k}">${o.h}</button>`).join('')}</div>`;
+      h=`<div class="qkind">${type==='name'?'认一认 · NAME IT':type==='abbr'?'简称 · SHORT NAME':'地区 · REGION'}</div><div class="mut" style="margin-bottom:4px">${ttl}</div>${type!=='name'?`<div class="qbig" style="font-size:28px">${p.cn}</div>`:''}<div class="opts">${opts.map((o,k)=>`<button class="opt" data-k="${k}">${o.h}</button>`).join('')}</div>`;
       Q.opts=opts}
-    $('#q').innerHTML=st+h+`<div id="fb" style="min-height:52px;margin-top:8px"></div>`;
+    $('#q').innerHTML=introCard('cmt_intro_train')+st+h+qAct()+`<div id="fb" style="min-height:52px;margin-top:8px"></div>`;
     $('#q').querySelectorAll('.opt').forEach(b=>b.onclick=()=>{if(locked)return;const o=Q.opts[+b.dataset.k];
-      $('#q').querySelectorAll('.opt').forEach((x,k)=>{if(Q.opts[k].ok)x.classList.add('ok')});if(!o.ok)b.classList.add('bad');reveal(o.ok,null)})}
-  function reveal(ok,tapped){locked=true;const {nm}=Q,p=PI[nm];const s0=stars(nm);learn(nm,ok);fx(ok,s0,stars(nm),tapped);bump(ok);beep(ok);sess.n++;if(ok)sess.ok++;ss();
+      $('#q').querySelectorAll('.opt').forEach((x,k)=>{if(Q.opts[k].ok)x.classList.add('ok')});if(!o.ok)b.classList.add('bad');reveal(o.ok,null)});
+    $('#qhint').onclick=e=>{if(locked)return;Q.hinted=true;e.currentTarget.disabled=true;
+      if(Q.opts)fiftyFifty(Q);else{ALLP.filter(n=>PI[n].r===p.r).forEach(n=>{if(!PEL[n].classList.contains('tgt'))PEL[n].style.fill='var(--soft)'});mapCue(`Hint: it’s in ${REG[p.r][0]} ${REG[p.r][2]} (shaded)`)}};
+    $('#qidk').onclick=()=>{if(locked)return;Q.idk=true;if(Q.opts)$('#q').querySelectorAll('.opt').forEach((x,k)=>{if(Q.opts[k].ok)x.classList.add('ok')});reveal(false,null)}}
+  function reveal(ok,tapped){locked=true;mapCue('');const {nm}=Q,p=PI[nm];const s0=stars(nm);const free=Q.hinted&&ok;if(!free){learn(nm,ok);bump(ok)}fx(ok,s0,stars(nm),tapped);beep(ok);sess.n++;if(ok)sess.ok++;ss();
     clearMarks();PEL[nm].classList.add('pulse');tgt(nm,!ok);
     drawLabels(x=>x===nm||x===tapped||(SMALL[x]&&stars(x)>=2)?PI[x].cn:'');if(tapped&&tapped!==nm)flash(tapped,false);
     say(Q.type==='abbr'?p.ab:Q.type==='capital'?p.cap+'，'+p.cn:p.cn);
     const extra=Q.type==='capital'?`省会 ${p.cap} ${p.cappy} · `:Q.type==='abbr'?`简称 <b>${p.ab}</b> · `:Q.type==='neighbor'?`Borders: ${ADJ[nm].join('、')} · `:'';
     const wrong=tapped&&tapped!==nm&&Q.type!=='neighbor'?`<div class="mut">You tapped ${tapped} ${PI[tapped].en}</div>`:'';
     $('#fb').innerHTML=`<div>${ok?OKI:BADI} <b>${p.cn}</b> <span class="py">${p.py}</span> · ${p.en} <button class="say" onclick="say('${p.cn}')">${ic('spk')}</button></div>
-      <div class="mut">${extra}${REG[p.r][0]} ${REG[p.r][2]} · <span class="stars">${starStr(stars(nm))}</span>${stars(nm)===3&&ok?' 金牌 Gold!':''}</div>${wrong}
+      <div class="mut">${extra}${REG[p.r][0]} ${REG[p.r][2]} · <span class="stars">${starStr(stars(nm))}</span>${stars(nm)===3&&ok&&!free?' · 金牌 Gold!':''}${free?' · with hint, no points':''}${Q.idk?' · here it is on the map':''}</div>${wrong}
       <button class="btn" style="margin-top:12px" id="nx">Next ${ic('chev')}</button>`;
-    $('#nx').onclick=ask;if(ok)window._tt=setTimeout(()=>{if(curMode==='train'&&trainView==='q'&&locked)ask()},1800)}
+    scrollPanel(true);$('#nx').onclick=ask;if(ok)window._tt=setTimeout(()=>{if(curMode==='train'&&trainView==='q'&&locked)ask()},1800)}
   onTap=(cx,cy)=>{if(trainView!=='q')return;const nm=hitProv(cx,cy);if(!nm)return;
     if(locked){toast(`${nm} ${PI[nm].py} · ${PI[nm].en}`);return}
     if(!['find','capital','neighbor'].includes(Q.type)){toast('Pick an answer below');return}
@@ -799,38 +824,45 @@ function trainCity(){
   const viewScope=()=>{const sp=scopeProvs();if(sp)zoomTo(bboxOf(sp),.05);else resetView()};
   const ss=()=>{const pl=pool(),g=pl.filter(c=>cstars(c)===3).length;$('#ss').textContent=`${pl.length} cities · ${g} gold`};
   $('#tp').onclick=()=>{trainView=trainView==='q'?'prog':'q';clearTimeout(window._tt);trainView==='prog'?progress():ask()};
-  function progress(){$('#tp').classList.add('on');ctReset();clearMarks();viewScope();paint(()=>'');svg.classList.add('allon');
+  function progress(){mapCue('');$('#tp').classList.add('on');ctReset();clearMarks();viewScope();paint(()=>'');svg.classList.add('allon');
     pool().forEach(c=>{const st=cstars(c);c.dot.style.fill=MCOL[st]||'#fff';c.dot.classList.add('on')});
     const weak=[...pool()].sort((a,b)=>cpts(a)-cpts(b)).slice(0,8);
     $('#q').innerHTML=`<div class="mut">Dots coloured by mastery. Zoom in for names. Weakest:</div><div style="margin:8px 0">${weak.map(c=>`<span class="tag">${c.s} <span class="mut">${PI[c.p].cn}</span></span>`).join('')}</div><button class="btn" id="go">Continue training</button>`;
     $('#go').onclick=()=>{CT.forEach(c=>c.dot.style.fill='');trainView='q';$('#tp').classList.remove('on');ask()}}
   function pickC(){const pl=pool().filter(c=>!cRecent.includes(c));let tot=0;const w=pl.map(c=>{const x=(MAXP+1-cpts(c))**2;tot+=x;return x});let r=Math.random()*tot;for(let i=0;i<pl.length;i++){r-=w[i];if(r<=0)return pl[i]}return pl[0]}
-  function ask(){clearTimeout(window._tt);locked=false;CT.forEach(c=>c.dot.style.fill='');clearMarks();paint(()=>'');drawLabels(()=>'');ss();
+  function ask(){clearTimeout(window._tt);locked=false;scrollPanel(false);CT.forEach(c=>c.dot.style.fill='');clearMarks();paint(()=>'');drawLabels(()=>'');ss();
     const c=pickC();if(!c){$('#q').textContent='No cities';return}cRecent=[c,...cRecent].slice(0,6);
     const s=cpts(c),showPy=s<2,p=PI[c.p];
     const type=pick(s<2?['cprov','cprov','cfindP']:s<4?['cprov','cname','cfindP']:['cfindR','cfindR','cname','cprov']);
     Q={c,type};window._q=Q;const pyH=showPy?`<div class="py">${c.py}</div>`:'';let h='';
     const sameProv=CTQ.filter(x=>x.p===c.p);
-    if(type==='cprov'){viewScope();h=`<div class="mut">哪个省？ · Tap the province this city is in</div><div class="qbig">${c.s}</div>${pyH}`}
+    if(type==='cprov'){viewScope();h=`<div class="qkind">哪个省 · WHICH PROVINCE</div><div class="qbig">${c.s}</div>${pyH}<div class="qhow">${ic('hand')}Tap the province ${c.s} is in</div>`;mapCue(`Tap the province ${c.s} is in`)}
     else if(type==='cfindP'){zoomTo(PEL[c.p].getBBox());tgt(c.p,false);PEL[c.p].style.fill='var(--soft)';cands=sameProv;cands.forEach(x=>x.dot.classList.add('on'));
-      h=`<div class="mut">找城市 · Find it in ${p.cn} ${p.en}</div><div class="qbig">${c.s}</div>${pyH}`}
+      h=`<div class="qkind">找城市 · FIND THE CITY</div><div class="qbig">${c.s}</div>${pyH}<div class="qhow">${ic('hand')}Tap the dot for ${c.s} in ${p.cn}</div>`;mapCue(`Tap the dot for ${c.s}`)}
     else if(type==='cfindR'){const rp=ALLP.filter(n=>PI[n].r===p.r);zoomTo(bboxOf(rp),.05);cands=CTQ.filter(x=>PI[x.p].r===p.r);cands.forEach(x=>x.dot.classList.add('on'));
-      h=`<div class="mut">找城市 · Find it in ${REG[p.r][0]} ${REG[p.r][2]} (zoom in if needed)</div><div class="qbig">${c.s}</div>${pyH}`}
+      h=`<div class="qkind">找城市 · FIND THE CITY</div><div class="qbig">${c.s}</div>${pyH}<div class="qhow">${ic('hand')}Tap the dot for ${c.s} in ${REG[p.r][0]} ${REG[p.r][2]}. Pinch to zoom if needed</div>`;mapCue(`Tap the dot for ${c.s}`)}
     else{zoomTo(PEL[c.p].getBBox());PEL[c.p].style.fill='var(--soft)';sameProv.forEach(x=>x.dot.classList.add('on'));c.dot.classList.add('tgt');
       let ds=shuffle(sameProv.filter(x=>x!==c));if(ds.length<3)ds=ds.concat(shuffle(CTQ.filter(x=>ADJ[c.p].includes(x.p))));ds=ds.slice(0,3);
       const opts=shuffle([c,...ds]).map(x=>({ok:x===c,h:x.s}));Q.opts=opts;
-      h=`<div class="mut">这是哪个城市？ · Name the purple dot in ${p.cn}</div><div class="opts">${opts.map((o,k)=>`<button class="opt" data-k="${k}">${o.h}</button>`).join('')}</div>`}
-    $('#q').innerHTML=`<div class="stars" style="font-size:13px">${starStr(cstars(c))}</div>`+h+`<div id="fb" style="min-height:52px;margin-top:8px"></div>`;
-    $('#q').querySelectorAll('.opt').forEach(b=>b.onclick=()=>{if(locked)return;const o=Q.opts[+b.dataset.k];$('#q').querySelectorAll('.opt').forEach((x,k)=>{if(Q.opts[k].ok)x.classList.add('ok')});if(!o.ok)b.classList.add('bad');reveal(o.ok,null)})}
-  function reveal(ok,tapped){locked=true;const {c}=Q,p=PI[c.p];const s0=cstars(c);clearn(c,ok);fx(ok,s0,cstars(c),tapped);bump(ok);beep(ok);ss();
+      mapCue('Which city is the purple dot? Answer below');
+      h=`<div class="qkind">认城市 · NAME THE CITY</div><div class="mut" style="margin-bottom:4px">Which city is the purple dot in ${p.cn}?</div><div class="opts">${opts.map((o,k)=>`<button class="opt" data-k="${k}">${o.h}</button>`).join('')}</div>`}
+    $('#q').innerHTML=introCard('cmt_intro_train')+`<div class="stars" style="font-size:13px">${starStr(cstars(c))}</div>`+h+qAct()+`<div id="fb" style="min-height:52px;margin-top:8px"></div>`;
+    $('#q').querySelectorAll('.opt').forEach(b=>b.onclick=()=>{if(locked)return;const o=Q.opts[+b.dataset.k];$('#q').querySelectorAll('.opt').forEach((x,k)=>{if(Q.opts[k].ok)x.classList.add('ok')});if(!o.ok)b.classList.add('bad');reveal(o.ok,null)});
+    $('#qhint').onclick=e=>{if(locked)return;Q.hinted=true;e.currentTarget.disabled=true;
+      if(Q.opts)fiftyFifty(Q);
+      else if(type==='cprov'){ALLP.filter(n=>PI[n].r===p.r).forEach(n=>PEL[n].style.fill='var(--soft)');mapCue(`Hint: it’s in ${REG[p.r][0]} ${REG[p.r][2]} (shaded)`)}
+      else{const near=[...cands].sort((a,b)=>Math.hypot(a.xy[0]-c.xy[0],a.xy[1]-c.xy[1])-Math.hypot(b.xy[0]-c.xy[0],b.xy[1]-c.xy[1])).slice(0,4);
+        shuffle(near).forEach(x=>x.lab.classList.add('on'));mapCue('Hint: it’s one of the 4 named dots')}};
+    $('#qidk').onclick=()=>{if(locked)return;Q.idk=true;if(Q.opts)$('#q').querySelectorAll('.opt').forEach((x,k)=>{if(Q.opts[k].ok)x.classList.add('ok')});reveal(false,null)}}
+  function reveal(ok,tapped){locked=true;mapCue('');const {c}=Q,p=PI[c.p];const s0=cstars(c);const free=Q.hinted&&ok;if(!free){clearn(c,ok);bump(ok)}fx(ok,s0,cstars(c),tapped);beep(ok);ss();CT.forEach(x=>{if(x!==c&&x!==tapped)x.lab.classList.remove('on')});
     c.dot.classList.add('on','pulse');c.dot.classList.remove('tgt');c.lab.classList.add('on');
     if(tapped&&tapped.dot){if(tapped!==c){tapped.dot.classList.add('bad');tapped.lab.classList.add('on')}}
-    if(Q.type==='cprov'){PEL[c.p].classList.add('pulse');drawLabels(x=>x===c.p||x===tapped?PI[x].cn:'');if(typeof tapped==='string'&&tapped!==c.p)flash(tapped,false)}
+    if(Q.type==='cprov'||Q.idk){PEL[c.p].classList.add('pulse');drawLabels(x=>x===c.p||x===tapped?PI[x].cn:'');if(typeof tapped==='string'&&tapped!==c.p)flash(tapped,false)}
     say(c.s);
     const fl=(c.cap?'★ 省会 capital · ':'')+(c.sin?'✈ Changi: '+c.sin.al.map(a=>AL[a][1]).join('、'):'');
     $('#fb').innerHTML=`<div>${ok?OKI:BADI} <b>${c.s}</b> <span class="py">${c.py}</span> · ${c.en} <button class="say" onclick="say('${c.s}')">${ic('spk')}</button></div>
-      <div class="mut">${p.cn} ${p.en} · <span class="stars">${starStr(cstars(c))}</span>${fl?'<br>'+fl:''}</div><button class="btn" style="margin-top:12px" id="nx">Next ${ic('chev')}</button>`;
-    $('#nx').onclick=ask;if(ok)window._tt=setTimeout(()=>{if(curMode==='train'&&trainView==='q'&&locked&&TRK==='c')ask()},1800)}
+      <div class="mut">${p.cn} ${p.en} · <span class="stars">${starStr(cstars(c))}</span>${free?' · with hint, no points':''}${Q.idk?' · here it is on the map':''}${fl?'<br>'+fl:''}</div><button class="btn" style="margin-top:12px" id="nx">Next ${ic('chev')}</button>`;
+    scrollPanel(true);$('#nx').onclick=ask;if(ok)window._tt=setTimeout(()=>{if(curMode==='train'&&trainView==='q'&&locked&&TRK==='c')ask()},1800)}
   onTap=(cx,cy)=>{if(trainView!=='q')return;
     if(locked){const a=hitDot(cx,cy,CT.filter(x=>x.dot.classList.contains('on')));if(a)toast(`${a.s} ${a.py} · ${PI[a.p].cn}`);return}
     if(Q.type==='cname'){toast('Pick an answer below');return}
@@ -854,7 +886,7 @@ function cities(){
     $('#q').innerHTML=`<div class="mut">${type==='dot'?'找城市 · Tap the city dot':'在哪个省？ · Tap the province this city is in'}</div><div class="big" style="font-size:40px">${c.cn}</div>${cityHard?'':`<div class="py">${c.py}</div>`}<div class="mut" id="fb" style="min-height:40px;margin-top:6px"></div>`};
   const next=ok=>{bump(ok);ripple(ok);fly(qs[i].c);if(!ok)shake($('#q'));if(ok)right++;locked=true;const {c}=qs[i];c.dot.setAttribute('class','dot '+(ok?'ok':'hot'));c.lbl.style.display='';showArcs(true,x=>x===c);
     PEL[c.prov].style.fill=RC(PI[c.prov].r);
-    $('#fb').innerHTML=`${ok?OKI:BADI} <b>${c.cn}</b> ${c.en} is in <b>${c.prov}</b> ${PI[c.prov].en}. From SIN: ${c.al.map(a=>AL[a][1]).join('、')}<br><button class="btn" style="margin-top:12px" id="nx">Next ${ic('chev')}</button>`;$('#nx').onclick=()=>{i++;ask()}};
+    $('#fb').innerHTML=`${ok?OKI:BADI} <b>${c.cn}</b> ${c.en} is in <b>${c.prov}</b> ${PI[c.prov].en}. From SIN: ${c.al.map(a=>AL[a][1]).join('、')}<br><button class="btn" style="margin-top:12px" id="nx">Next ${ic('chev')}</button>`;scrollPanel(true);$('#nx').onclick=()=>{i++;ask();scrollPanel(false)}};
   onTap=(cx,cy)=>{if(locked||i>=qs.length)return;const {c,type}=qs[i];
     if(type==='dot'){const h=hitCity(cx,cy);if(!h)return;if(h!==c){h.dot.setAttribute('class','dot bad');h.lbl.style.display=''}next(h===c)}
     else{const nm=hitProv(cx,cy);if(!nm)return;flash(nm,nm===c.prov);if(nm!==c.prov)toast(`That’s ${nm} ${PI[nm].en}`);next(nm===c.prov)}};
@@ -889,7 +921,7 @@ function air(){
     $('#q').querySelectorAll('.opt').forEach(b=>b.onclick=()=>{if($('#q').dataset.l==='1')return;$('#q').dataset.l='1';const o=Q.opts[+b.dataset.k];
       $('#q').querySelectorAll('.opt').forEach((x,k)=>{if(Q.opts[k].ok)x.classList.add('ok')});if(!o.ok){b.classList.add('bad');shake($('#q'))}bump(o.ok);beep(o.ok);if(o.ok)right++;
       const m=AL[Q.a];show(Q.a);$('#fb').innerHTML=`<div class="mut">${o.ok?OKI:BADI} <b style="color:var(--ink)">${m[1]}</b> = ${m[0]} ${Q.a} (${m[2]}) · ${GRP[m[3]][0]} · base ${m[4]}. Map shows its SIN routes.</div><button class="btn" style="margin-top:12px" id="nx">Next ${ic('chev')}</button>`;
-      $('#nx').onclick=()=>{$('#q').dataset.l='';i++;ask()}})};
+      scrollPanel(true);$('#nx').onclick=()=>{$('#q').dataset.l='';i++;ask();scrollPanel(false)}})};
   ask();
 }
 
@@ -898,7 +930,7 @@ const MODES={train,explore,place,cities,air};let curMode='explore';
 $('#tabs').querySelectorAll('button').forEach(b=>b.onclick=()=>{const m=b.dataset.m;if(m===curMode)return;
   $('#tabs').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));clearMarks();clearTimeout(window._tt);CT.forEach(c=>c.dot.style.fill='');
   $('#pop').hidden=true;$('#layersBtn').classList.remove('on');$('#layersBtn').style.display=m==='explore'?'':'none';$('#scroll').scrollTop=0;
-  curMode=m;$('#app').dataset.mode=m;MODES[curMode]()});
+  mapCue('');curMode=m;$('#app').dataset.mode=m;MODES[curMode]()});
 // bottom sheet: drag the handle; it follows your finger and snaps to 3 heights
 (()=>{const g=$('#grab'),mb=$('#mapbox'),stage=$('.stage');const MQ=matchMedia('(max-width:899px) and (orientation:portrait)');
   let idx=1,drag=null;
