@@ -85,6 +85,8 @@ svg.zoomed .rlbl{display:none}
 .callout circle{fill:var(--card);stroke:var(--dotStroke);stroke-width:.9;vector-effect:non-scaling-stroke}
 .callout line{stroke:var(--dotStroke);stroke-width:.8;vector-effect:non-scaling-stroke}
 .callout text{font-size:calc(var(--k,1)*8.5px);font-weight:700;text-anchor:middle;dominant-baseline:central;pointer-events:none;fill:var(--ink)}
+.callout.blank circle{fill:var(--card);fill-opacity:.5;stroke:var(--acc);stroke-opacity:.75;stroke-width:1.3;stroke-dasharray:3 2.5}
+.callout.blank line{stroke:var(--acc);stroke-opacity:.5;stroke-dasharray:2 2}
 .callout.tgt circle{fill:var(--soft);stroke:var(--acc);stroke-width:1.8}
 .arc{fill:none;stroke:var(--acc);stroke-width:1;vector-effect:non-scaling-stroke;opacity:.38;pointer-events:none;transition:opacity .3s}
 .arc.hot{opacity:1;stroke-width:2;stroke:var(--pink)}
@@ -599,7 +601,7 @@ function ctReset(){svg.classList.remove('allon');CT.forEach(c=>{c.dot.setAttribu
 const L={labels:'cn',regions:true,routes:false,mastery:false,all:true};
 function paint(fillFn){for(const nm in PEL){if(!PI[nm])continue;PEL[nm].style.fill=fillFn(nm)||''}}
 function drawLabels(fn){gL.innerHTML='';for(const nm in GEO){if(!PI[nm]||SMALL[nm])continue;const s=fn(nm);if(!s)continue;const l=GEO[nm].l||GEO[nm].c;const t=el('text',{x:l[0],y:l[1],class:'lbl'+(s.length>4?' sm':'')+(/[A-Za-z]/.test(s)?' lat':'')},gL);t.textContent=s}
-  for(const g of gC.children){const nm=g.dataset.p,s=fn(nm);g._t.textContent=s?PI[nm].ab:''}}
+  for(const g of gC.children){const nm=g.dataset.p,s=fn(nm);g._t.textContent=s?PI[nm].ab:'';g.classList.toggle('blank',!s)}}
 function showDots(on,labels){gD.style.display=on?'':'none';CITY.forEach(c=>{c.dot.setAttribute('class','dot');c.lbl.style.display=labels?'':'none'})}
 function showArcs(on,filter){gA.style.display=on?'':'none';gS.style.display=on?'':'none';CITY.forEach(c=>c.arc.setAttribute('class','arc'+(filter&&filter(c)?' hot':'')))}
 function legend(on){on=false;$('#legend').innerHTML=on?Object.entries(REG).map(([k,v])=>`<span><i style="background:var(--${k})"></i>${v[0]}</span>`).join(''):''}
@@ -745,7 +747,7 @@ function trainProv(){
     $('#go').onclick=()=>{trainView='q';$('#tp').classList.remove('on');ask()};
     $('#rs').onclick=()=>{if($('#rs').dataset.c){for(const k in MS)delete MS[k];store.set('cmt_mastery',MS);mbar();progress()}else{$('#rs').dataset.c=1;$('#rs').textContent='Tap again to confirm'}}}
   function ask(){clearTimeout(window._tt);locked=false;clearMarks();paint(()=>'');drawLabels(()=>'');ss();
-    const nm=pickTarget();recent=[nm,...recent].slice(0,4);const type=pick(typesFor(nm)),p=PI[nm],lvl=stars(nm);
+    drawLabels(n=>SMALL[n]&&stars(n)>=2?'1':'');const nm=pickTarget();recent=[nm,...recent].slice(0,4);const type=pick(typesFor(nm)),p=PI[nm],lvl=stars(nm);
     const showPy=trainPy??(pts(nm)<2);Q={nm,type};window._q=Q;
     const pyH=t=>showPy?`<div class="py">${t}</div>`:'';
     const st=`<div class="stars" style="font-size:13px">${starStr(lvl)}</div>`;
@@ -764,7 +766,7 @@ function trainProv(){
       $('#q').querySelectorAll('.opt').forEach((x,k)=>{if(Q.opts[k].ok)x.classList.add('ok')});if(!o.ok)b.classList.add('bad');reveal(o.ok,null)})}
   function reveal(ok,tapped){locked=true;const {nm}=Q,p=PI[nm];const s0=stars(nm);learn(nm,ok);fx(ok,s0,stars(nm),tapped);bump(ok);beep(ok);sess.n++;if(ok)sess.ok++;ss();
     clearMarks();PEL[nm].classList.add('pulse');tgt(nm,!ok);
-    drawLabels(x=>x===nm||x===tapped?PI[x].cn:'');if(tapped&&tapped!==nm)flash(tapped,false);
+    drawLabels(x=>x===nm||x===tapped||(SMALL[x]&&stars(x)>=2)?PI[x].cn:'');if(tapped&&tapped!==nm)flash(tapped,false);
     say(Q.type==='abbr'?p.ab:Q.type==='capital'?p.cap+'，'+p.cn:p.cn);
     const extra=Q.type==='capital'?`省会 ${p.cap} ${p.cappy} · `:Q.type==='abbr'?`简称 <b>${p.ab}</b> · `:Q.type==='neighbor'?`Borders: ${ADJ[nm].join('、')} · `:'';
     const wrong=tapped&&tapped!==nm&&Q.type!=='neighbor'?`<div class="mut">You tapped ${tapped} ${PI[tapped].en}</div>`:'';
