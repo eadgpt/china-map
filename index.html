@@ -102,6 +102,9 @@ svg.allon .cdot,.cdot.on{display:inline}
 .clab{display:none;font-size:calc(var(--k,1)*10px);font-weight:500;fill:var(--mut);pointer-events:none;paint-order:stroke;stroke:var(--halo);stroke-width:calc(var(--k,1)*3px)}
 svg.allon.zoomed .clab,.clab.on{display:inline}
 .clab.cap{font-weight:700;fill:var(--ink)}.clab.on{font-weight:700;fill:var(--ink)}
+.hring{fill:var(--acc);fill-opacity:.14;stroke:var(--acc);stroke-width:2.2;stroke-dasharray:7 5;vector-effect:non-scaling-stroke;pointer-events:none;transform-box:fill-box;transform-origin:center;animation:hr .6s var(--spring) both}
+@keyframes hr{from{transform:scale(1.6);opacity:0}}
+.qact.used{display:none}
 .fx circle.rip{fill:none;stroke-width:2.5;vector-effect:non-scaling-stroke;transform-box:fill-box;transform-origin:center;animation:rip .7s var(--ease) forwards}
 @keyframes rip{from{transform:scale(.1);opacity:.9}to{transform:scale(1);opacity:0}}
 .plane{fill:var(--pink);stroke:#fff;stroke-width:.4}
@@ -613,7 +616,7 @@ let AC=null;function beep(ok){if(!SET.snd)return;try{AC=AC||new (window.AudioCon
   o.connect(g).connect(AC.destination);o.start(t);o.stop(t+.3);if(!ok&&navigator.vibrate)navigator.vibrate(120)}catch(e){}}
 function say(t){if(!SET.voice)return;try{const u=new SpeechSynthesisUtterance(t);u.lang='zh-CN';u.rate=.85;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}}
 function tgt(nm,on){PEL[nm]&&PEL[nm].classList.toggle('tgt',on);for(const g of gC.children)if(g.dataset.p===nm)g.classList.toggle('tgt',on)}
-function clearMarks(){for(const k in PEL)PEL[k].classList.remove('hl','tgt','pulse');for(const g of gC.children)g.classList.remove('tgt');ctReset()}
+function clearMarks(){clearRing();for(const k in PEL)PEL[k].classList.remove('hl','tgt','pulse');for(const g of gC.children)g.classList.remove('tgt');ctReset()}
 function ctReset(){svg.classList.remove('allon');CT.forEach(c=>{c.dot.setAttribute('class','cdot'+(c.cap?' cap':''));c.lab.classList.remove('on')})}
 
 // layers
@@ -697,7 +700,7 @@ const PLACE_LV={
  reg:{t:'地区 Regions'}};
 let placeLv='cn',hintPy=true;
 function place(){
-  showArcs(false);showDots(false);legend(false);showRegs(false);
+  showArcs(false);showDots(false);legend(false);showRegs(false);clearRing();mapCue('');
   const lv=PLACE_LV[placeLv];let pool,done=new Set(),miss=0,sel=null,t0=Date.now();
   if(placeLv==='reg'){pool=shuffle(Object.keys(REG)).map(k=>({id:k,lab:[REG[k][0],REG[k][2]]}))}
   else pool=shuffle(PROV.map(p=>PI[p[0]]).filter(p=>!lv.filter||lv.filter(p))).map(p=>({id:p.cn,lab:lv.chip(p)}));
@@ -709,9 +712,14 @@ function place(){
   <button class="tog ${hintPy?'on':''}" id="hp">Pinyin hint</button></div>
   <div class="prog"><i id="pg"></i></div><div class="mut" id="pst" style="text-align:center;margin-bottom:8px"></div>
   <div class="tray" id="tray"></div>
-  <div class="mut" style="text-align:center;margin-top:8px">Drag a card onto the map, or tap a card then tap the place.${best?` Best: ${best.m} mistakes, ${best.s}s.`:''}</div>`;
+  <div class="qact"><button class="lnk" id="phint">${ic('info')} Hint</button></div>
+  <div class="mut" style="text-align:center;margin-top:4px">Drag a card onto the map, or tap a card then tap the place.${best?` Best: ${best.m} mistakes, ${best.s}s.`:''}</div>`;
   P.querySelectorAll('#lv button').forEach(b=>b.onclick=()=>{placeLv=b.dataset.k;place()});
   $('#hp').onclick=()=>{hintPy=!hintPy;place()};
+  $('#phint').onclick=()=>{const x=sel||pool.find(y=>!done.has(y.id));if(!x)return;x.missed=true;
+    if(!sel){sel=x;tray.querySelectorAll('.chip').forEach(c=>c.classList.toggle('sel',c._x===x))}
+    if(placeLv==='reg'){const b=bboxOf(ALLP.filter(n=>PI[n].r===x.id));hintRing(b.x+b.width/2,b.y+b.height/2,Math.hypot(b.width,b.height)/2*.75,48)}else provRing(x.id);
+    mapCue(`Hint: ${x.lab[0]} is inside the ring`)};
   const tray=$('#tray');
   const status=()=>{$('#pg').style.width=(done.size/total*100)+'%';$('#pst').textContent=`${done.size}/${total} placed · ${miss} mistakes`};
   function drawTray(){tray.innerHTML='';const left=pool.filter(x=>!done.has(x.id)).slice(0,5);
@@ -721,7 +729,7 @@ function place(){
     left.forEach(x=>{const c=document.createElement('div');c.className='chip';c.innerHTML=x.lab[0]+(hintPy&&x.lab[1]?`<small>${x.lab[1]}</small>`:'');c._x=x;tray.appendChild(c);dragify(c)})}
   function attempt(x,nm,chip){if(!nm)return;const p=PI[nm];const ok=placeLv==='reg'?p.r===x.id:nm===x.id;
     ripple(ok);if(placeLv!=='reg'&&!x.missed)learn(x.id,ok);if(!ok)x.missed=true;
-    if(ok){done.add(x.id);bump(true);beep(true);say(placeLv==='ab'?p.ab:placeLv==='cap'?p.cap:p.cn);flash(nm,true);toast(placeLv==='reg'?`${REG[x.id][0]} ${REG[x.id][2]} ✓`:`${p.cn} ${p.py} · ${p.en} ✓`);sel=null;refresh();drawTray()}
+    if(ok){done.add(x.id);clearRing();mapCue('');bump(true);beep(true);say(placeLv==='ab'?p.ab:placeLv==='cap'?p.cap:p.cn);flash(nm,true);toast(placeLv==='reg'?`${REG[x.id][0]} ${REG[x.id][2]} ✓`:`${p.cn} ${p.py} · ${p.en} ✓`);sel=null;refresh();drawTray()}
     else{miss++;bump(false);beep(false);flash(nm,false);toast(`That’s ${p.cn} ${p.py} (${p.en})`);chip&&(chip.classList.remove('shake'),void chip.offsetWidth,chip.classList.add('shake'))}
     status()}
   function dragify(c){let g=null,sx,sy,drag=false;
@@ -741,6 +749,10 @@ const scrollPanel=bottom=>{const sc=$('#scroll');requestAnimationFrame(()=>sc.sc
 function mapCue(t){const m=$('#mcue');if(!t){m.classList.remove('show');return}m.innerHTML=ic('hand')+`<span>${t}</span>`;m.classList.add('show')}
 const qAct=()=>`<div class="qact"><button class="lnk" id="qhint">${ic('info')} Hint</button><button class="lnk" id="qidk">I don’t know</button></div>`;
 function introCard(key){if(store.get(key,0))return'';return`<div class="intro" id="intro"><b>How Train works</b><br>Each question names a place. If it says <b>Tap … on the map</b>, tap it on the map. If you see buttons, pick one. Stuck? Use <b>Hint</b> or <b>I don’t know</b>. Places turn gold as you learn them.<br><button class="btn" style="padding:7px 14px;font-size:14px" onclick="this.closest('.intro').remove();store.set('${key}',1)">Got it</button></div>`}
+function hintRing(cx,cy,inner,r){clearRing();r=Math.max(r,inner*1.7);const room=Math.max(0,r-inner)*.85,a=Math.random()*Math.PI*2,d=Math.random()*room;
+  const el=document.createElementNS('http://www.w3.org/2000/svg','circle');el.setAttribute('class','hring');el.setAttribute('cx',cx+Math.cos(a)*d);el.setAttribute('cy',cy+Math.sin(a)*d);el.setAttribute('r',r);$('#fx').appendChild(el)}
+function clearRing(){document.querySelectorAll('.hring').forEach(e=>e.remove())}
+function provRing(nm){const b=PEL[nm].getBBox();hintRing(b.x+b.width/2,b.y+b.height/2,Math.hypot(b.width,b.height)/2,48)}
 function fiftyFifty(Q){const wrong=Q.opts.map((o,i)=>o.ok?-1:i).filter(i=>i>=0);shuffle(wrong).slice(0,2).forEach(i=>$('#q').querySelectorAll('.opt')[i].classList.add('gone'))}
 
 const KIND={find:'找一找 · FIND IT',capital:'省会 · CAPITAL',neighbor:'邻省 · NEIGHBOURS',name:'认一认 · NAME IT',abbr:'简称 · SHORT NAME',region:'地区 · REGION',cprov:'哪个省 · WHICH PROVINCE',cfindP:'找城市 · FIND THE CITY',cfindR:'找城市 · FIND THE CITY',cname:'认城市 · NAME THE CITY'};
@@ -778,7 +790,7 @@ function trainProv(){
       <button class="btn alt" id="rs" style="margin-left:6px">Reset progress</button>`;
     $('#go').onclick=()=>{trainView='q';$('#tp').classList.remove('on');ask()};
     $('#rs').onclick=()=>{if($('#rs').dataset.c){for(const k in MS)delete MS[k];store.set('cmt_mastery',MS);mbar();progress()}else{$('#rs').dataset.c=1;$('#rs').textContent='Tap again to confirm'}}}
-  function ask(force){clearTimeout(window._tt);locked=false;rv=null;scrollPanel(false);clearMarks();paint(()=>'');drawLabels(()=>'');ss();
+  function ask(force){clearTimeout(window._tt);clearRing();locked=false;rv=null;scrollPanel(false);clearMarks();paint(()=>'');drawLabels(()=>'');ss();
     force=force&&force.nm?force:null;
     drawLabels(n=>SMALL[n]&&stars(n)>=2?'1':'');const nm=force?force.nm:pickTarget();recent=[nm,...recent].slice(0,4);const type=force?force.type:pick(typesFor(nm)),p=PI[nm],lvl=stars(nm);
     const showPy=trainPy??(pts(nm)<2);Q={nm,type};window._q=Q;
@@ -800,9 +812,9 @@ function trainProv(){
     $('#q').querySelectorAll('.opt').forEach(b=>b.onclick=()=>{if(locked)return;const o=Q.opts[+b.dataset.k];if(!o.ok)Q.wrong=b.innerText.replace(/\n+/g,' ');
       $('#q').querySelectorAll('.opt').forEach((x,k)=>{if(Q.opts[k].ok)x.classList.add('ok')});if(!o.ok)b.classList.add('bad');reveal(o.ok,null)});
     $('#qhint').onclick=e=>{if(locked)return;Q.hinted=true;e.currentTarget.disabled=true;
-      if(Q.opts)fiftyFifty(Q);else{ALLP.filter(n=>PI[n].r===p.r).forEach(n=>{if(!PEL[n].classList.contains('tgt'))PEL[n].style.fill='var(--soft)'});mapCue(`Hint: it’s in ${REG[p.r][0]} ${REG[p.r][2]} (shaded)`)}};
+      if(Q.opts)fiftyFifty(Q);else if(type==='neighbor'){const nb=ADJ[nm][Math.floor(Math.random()*ADJ[nm].length)];provRing(nb);mapCue('Hint: a neighbour is inside the ring')}else{provRing(nm);mapCue(`Hint: it’s inside the ring · ${REG[p.r][0]} ${REG[p.r][2]}`)}};
     $('#qidk').onclick=()=>{if(locked)return;Q.idk=true;if(Q.opts)$('#q').querySelectorAll('.opt').forEach((x,k)=>{if(Q.opts[k].ok)x.classList.add('ok')});reveal(false,null)}}
-  function reveal(ok,tapped){locked=true;mapCue('');const {nm}=Q,p=PI[nm];if(tapped&&!ok&&PI[tapped])Q.wrong=`${tapped} ${PI[tapped].en}`;histP.push({nm,type:Q.type,ok,tapped,hinted:!!Q.hinted,idk:!!Q.idk,wrong:Q.wrong});if(histP.length>60)histP.shift();const s0=stars(nm);const free=Q.hinted&&ok;if(!free){learn(nm,ok);bump(ok)}fx(ok,s0,stars(nm),tapped);beep(ok);sess.n++;if(ok)sess.ok++;ss();
+  function reveal(ok,tapped){locked=true;mapCue('');clearRing();{const qa=$('#q .qact');if(qa)qa.classList.add('used')}const {nm}=Q,p=PI[nm];if(tapped&&!ok&&PI[tapped])Q.wrong=`${tapped} ${PI[tapped].en}`;histP.push({nm,type:Q.type,ok,tapped,hinted:!!Q.hinted,idk:!!Q.idk,wrong:Q.wrong});if(histP.length>60)histP.shift();const s0=stars(nm);const free=Q.hinted&&ok;if(!free){learn(nm,ok);bump(ok)}fx(ok,s0,stars(nm),tapped);beep(ok);sess.n++;if(ok)sess.ok++;ss();
     clearMarks();PEL[nm].classList.add('pulse');tgt(nm,!ok);
     drawLabels(x=>x===nm||x===tapped||(SMALL[x]&&stars(x)>=2)?PI[x].cn:'');if(tapped&&tapped!==nm)flash(tapped,false);
     say(Q.type==='abbr'?p.ab:Q.type==='capital'?p.cap+'，'+p.cn:p.cn);
@@ -855,7 +867,7 @@ function trainCity(){
     $('#q').innerHTML=`<div class="mut">Dots coloured by mastery. Zoom in for names. Weakest:</div><div style="margin:8px 0">${weak.map(c=>`<span class="tag">${c.s} <span class="mut">${PI[c.p].cn}</span></span>`).join('')}</div><button class="btn" id="go">Continue training</button>`;
     $('#go').onclick=()=>{CT.forEach(c=>c.dot.style.fill='');trainView='q';$('#tp').classList.remove('on');ask()}}
   function pickC(){const pl=pool().filter(c=>!cRecent.includes(c));let tot=0;const w=pl.map(c=>{const x=(MAXP+1-cpts(c))**2;tot+=x;return x});let r=Math.random()*tot;for(let i=0;i<pl.length;i++){r-=w[i];if(r<=0)return pl[i]}return pl[0]}
-  function ask(force){clearTimeout(window._tt);locked=false;rv=null;scrollPanel(false);CT.forEach(c=>c.dot.style.fill='');clearMarks();paint(()=>'');drawLabels(()=>'');ss();
+  function ask(force){clearTimeout(window._tt);clearRing();locked=false;rv=null;scrollPanel(false);CT.forEach(c=>c.dot.style.fill='');clearMarks();paint(()=>'');drawLabels(()=>'');ss();
     force=force&&force.c?force:null;
     const c=force?force.c:pickC();if(!c){$('#q').textContent='No cities';return}cRecent=[c,...cRecent].slice(0,6);
     const s=cpts(c),showPy=s<2,p=PI[c.p];
@@ -877,11 +889,11 @@ function trainCity(){
     $('#q').querySelectorAll('.opt').forEach(b=>b.onclick=()=>{if(locked)return;const o=Q.opts[+b.dataset.k];if(!o.ok)Q.wrong=b.innerText;$('#q').querySelectorAll('.opt').forEach((x,k)=>{if(Q.opts[k].ok)x.classList.add('ok')});if(!o.ok)b.classList.add('bad');reveal(o.ok,null)});
     $('#qhint').onclick=e=>{if(locked)return;Q.hinted=true;e.currentTarget.disabled=true;
       if(Q.opts)fiftyFifty(Q);
-      else if(type==='cprov'){ALLP.filter(n=>PI[n].r===p.r).forEach(n=>PEL[n].style.fill='var(--soft)');mapCue(`Hint: it’s in ${REG[p.r][0]} ${REG[p.r][2]} (shaded)`)}
+      else if(type==='cprov'){provRing(c.p);mapCue(`Hint: it’s inside the ring · ${REG[p.r][0]} ${REG[p.r][2]}`)}
       else{const near=[...cands].sort((a,b)=>Math.hypot(a.xy[0]-c.xy[0],a.xy[1]-c.xy[1])-Math.hypot(b.xy[0]-c.xy[0],b.xy[1]-c.xy[1])).slice(0,4);
-        shuffle(near).forEach(x=>x.lab.classList.add('on'));mapCue('Hint: it’s one of the 4 named dots')}};
+        shuffle(near).forEach(x=>x.lab.classList.add('on'));const far=near.length?Math.max(...near.map(x=>Math.hypot(x.xy[0]-c.xy[0],x.xy[1]-c.xy[1]))):6;hintRing(c.xy[0],c.xy[1],far*.35,far*1.15);mapCue('Hint: it’s inside the ring, one of the named dots')}};
     $('#qidk').onclick=()=>{if(locked)return;Q.idk=true;if(Q.opts)$('#q').querySelectorAll('.opt').forEach((x,k)=>{if(Q.opts[k].ok)x.classList.add('ok')});reveal(false,null)}}
-  function reveal(ok,tapped){locked=true;mapCue('');const {c}=Q,p=PI[c.p];if(tapped&&!ok)Q.wrong=typeof tapped==='string'?`${tapped} ${PI[tapped].en}`:`${tapped.s} (${PI[tapped.p].cn})`;histC.push({c,type:Q.type,ok,tapped,hinted:!!Q.hinted,idk:!!Q.idk,wrong:Q.wrong});if(histC.length>60)histC.shift();const s0=cstars(c);const free=Q.hinted&&ok;if(!free){clearn(c,ok);bump(ok)}fx(ok,s0,cstars(c),tapped);beep(ok);ss();CT.forEach(x=>{if(x!==c&&x!==tapped)x.lab.classList.remove('on')});
+  function reveal(ok,tapped){locked=true;mapCue('');clearRing();{const qa=$('#q .qact');if(qa)qa.classList.add('used')}const {c}=Q,p=PI[c.p];if(tapped&&!ok)Q.wrong=typeof tapped==='string'?`${tapped} ${PI[tapped].en}`:`${tapped.s} (${PI[tapped.p].cn})`;histC.push({c,type:Q.type,ok,tapped,hinted:!!Q.hinted,idk:!!Q.idk,wrong:Q.wrong});if(histC.length>60)histC.shift();const s0=cstars(c);const free=Q.hinted&&ok;if(!free){clearn(c,ok);bump(ok)}fx(ok,s0,cstars(c),tapped);beep(ok);ss();CT.forEach(x=>{if(x!==c&&x!==tapped)x.lab.classList.remove('on')});
     c.dot.classList.add('on','pulse');c.dot.classList.remove('tgt');c.lab.classList.add('on');
     if(tapped&&tapped.dot){if(tapped!==c){tapped.dot.classList.add('bad');tapped.lab.classList.add('on')}}
     if(Q.type==='cprov'||Q.idk){PEL[c.p].classList.add('pulse');drawLabels(x=>x===c.p||x===tapped?PI[x].cn:'');if(typeof tapped==='string'&&tapped!==c.p)flash(tapped,false)}
